@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="debug" monitorInterval="30" shutdownHook="disable" strict="true"
+               name="DefaultMirkoSwarmLog4j2Config"
+               packages="org.apache.logging.log4j.test">
+    <Appenders>
+        <Console name="console">
+            <PatternLayout
+                    pattern="[%date][%highlight{%-5level}][%logger{1.}] - %msg%n%throwable"
+                    charset="UTF-8"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="console"/>
+        </Root>
+        <logger name="akka" level="info"/>
+        <logger name="com.typesafe" level="info"/>
+    </Loggers>
+</Configuration>

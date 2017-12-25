@@ -2,6 +2,7 @@ package main
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import com.typesafe.config.Config
 
 import scala.concurrent.ExecutionContext
 
@@ -13,4 +14,5 @@ trait Deps {
   implicit val actorSystem: ActorSystem
   implicit val actorMaterializer: ActorMaterializer
   implicit val executionContext: ExecutionContext
+  val appConfig: Config
 }
