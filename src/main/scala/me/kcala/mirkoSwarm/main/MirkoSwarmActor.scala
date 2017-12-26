@@ -8,42 +8,53 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.json.JsonSupport
-import me.kcala.mirkoSwarm.wykop.{Entry, WykopApiHandler}
+import me.kcala.mirkoSwarm.wykop.Entry
 
-import scala.collection.immutable
-import scala.concurrent.Future
+import scala.collection.immutable._
 import scala.concurrent.duration.DurationLong
 import scala.util.{Failure, Success, Try}
+import akka.stream.ActorAttributes.supervisionStrategy
+import akka.stream.Supervision.resumingDecider
 
 class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupport {
 
   import deps._
 
-  val pool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), NotUsed] = Http().superPool[Int]()
 
-  Source.tick(0.seconds, 10.seconds, HttpRequest(uri = Uri("http://a.wykop.pl/stream/index/appkey,UbPB8on5Xx")) -> 2)
+  val pool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] = Http().cachedHostConnectionPool[Int]("a.wykop.pl")
+
+  Source.tick(0.seconds, 10.seconds, HttpRequest(uri = Uri("/stream/index/appkey,UbPB8on5Xx")) -> 2)
+    .log(logger.underlying.getName)
     .via(pool)
+    //      .map(l =>{ println(l); l})
     .map(_._1)
-    .collect { case Success(resp) => resp }
-    .mapAsync(10)(resp => Unmarshal(resp.entity).to[immutable.Seq[Entry]])
+    .map {
+      case Success(rep) => rep
+      case Failure(ex) =>
+        println(s"Couldn't fetch entries from Wykop. $ex")
+        throw ex
+    }
+    .mapAsync(10)(resp =>
+      Unmarshal(resp.entity).to[Seq[Entry]].recover{
+        case thr =>
+          println(s"Error deserialising response from wykop. $thr")
+          Seq()
+      }
+    )
+    .map(_.reverse)
     .mapConcat[Entry](identity)
-    .map(e =>
-      s"""==================================================================================
-         |$e
-         |==================================================================================""".stripMargin)
+        .statefulMapConcat { () =>
+          var biggestIdSoFar: Long = 0
+          entry =>
+            if (entry.id > biggestIdSoFar) {
+              biggestIdSoFar = entry.id
+              Seq(entry)
+            } else {
+              Seq.empty
+            }
+        }
+    .map(_.id)
     .toMat(Sink.foreach(e => println(e)))(Keep.right).run()
-
-
-  //  val handler = new WykopApiHandler()(deps)
-  //  handler.fetchLatestEntries()
-  //    .onComplete {
-  //      case Success(respText) =>
-  //        logger.info(respText.toString)
-  //        context.stop(self)
-  //      case Failure(e) =>
-  //        logger.warn("Couldn't fetch entries from Wykop", e)
-  //        context.stop(self)
-  //    }
 
   override def receive: Receive = {
     case _ => ???

@@ -4,6 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import me.kcala.mirkoSwarm.wykop.Entry
 import spray.json.{DefaultJsonProtocol, JsNull, JsObject, JsString, JsValue, JsonReader, NullOptions, RootJsonFormat, RootJsonReader}
 
+
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOptions {
 
   /**
@@ -32,4 +33,5 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
 
     override def write(obj: Entry): JsValue = ???
   }
+
 }
