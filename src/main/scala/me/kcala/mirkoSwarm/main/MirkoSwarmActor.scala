@@ -1,23 +1,24 @@
-package main
+package me.kcala.mirkoSwarm.main
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import wykop.WykopApiHandler
+import com.typesafe.scalalogging.StrictLogging
+import me.kcala.mirkoSwarm.wykop.WykopApiHandler
 
 import scala.util.{Failure, Success}
 
-class MirkoSwarmActor(deps: Deps) extends Actor with ActorLogging {
+class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging {
 
   import deps._
 
   val handler = new WykopApiHandler()(deps)
-  handler.fetchLatestEntries().flatMap(resp => Unmarshal(resp.entity).to[String])
+  handler.fetchLatestEntries()
     .onComplete {
       case Success(respText) =>
-        log.info(respText)
+        logger.info(respText.toString)
         context.stop(self)
       case Failure(e) =>
-        log.warning("Couldn't fetch entries from Wykop", e)
+        logger.warn("Couldn't fetch entries from Wykop", e)
         context.stop(self)
     }
 
