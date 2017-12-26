@@ -15,6 +15,7 @@ import scala.concurrent.duration.DurationLong
 import scala.util.{Failure, Success, Try}
 import akka.stream.ActorAttributes.supervisionStrategy
 import akka.stream.Supervision.resumingDecider
+import akka.stream.ThrottleMode
 
 class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupport {
 
@@ -26,7 +27,6 @@ class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupp
   Source.tick(0.seconds, 10.seconds, HttpRequest(uri = Uri("/stream/index/appkey,UbPB8on5Xx")) -> 2)
     .log(logger.underlying.getName)
     .via(pool)
-    //      .map(l =>{ println(l); l})
     .map(_._1)
     .map {
       case Success(rep) => rep
@@ -35,7 +35,7 @@ class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupp
         throw ex
     }
     .mapAsync(10)(resp =>
-      Unmarshal(resp.entity).to[Seq[Entry]].recover{
+      Unmarshal(resp.entity).to[Seq[Entry]].recover {
         case thr =>
           println(s"Error deserialising response from wykop. $thr")
           Seq()
@@ -43,16 +43,17 @@ class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupp
     )
     .map(_.reverse)
     .mapConcat[Entry](identity)
-        .statefulMapConcat { () =>
-          var biggestIdSoFar: Long = 0
-          entry =>
-            if (entry.id > biggestIdSoFar) {
-              biggestIdSoFar = entry.id
-              Seq(entry)
-            } else {
-              Seq.empty
-            }
+    .statefulMapConcat { () =>
+      var biggestIdSoFar: Long = 0
+      entry =>
+        if (entry.id > biggestIdSoFar) {
+          biggestIdSoFar = entry.id
+          Seq(entry)
+        } else {
+          Seq.empty
         }
+    }
+    .throttle(1, 500.millis, 1, ThrottleMode.Shaping)
     .map(_.id)
     .toMat(Sink.foreach(e => println(e)))(Keep.right).run()
 
