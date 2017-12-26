@@ -1,7 +1,6 @@
 package me.kcala.mirkoSwarm.main
 
-import akka.actor.{Actor, ActorLogging, Props}
-import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.actor.{Actor, Props}
 import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.wykop.WykopApiHandler
 

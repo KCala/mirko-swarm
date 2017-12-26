@@ -1,14 +1,11 @@
 package me.kcala.mirkoSwarm.wykop
 
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.headers.{ContentDispositionTypes, RawHeader, `Content-Type`}
-import akka.http.scaladsl.model.{HttpHeader, HttpRequest, Uri}
-import akka.http.scaladsl.server.ContentNegotiator.Alternative.ContentType
+import akka.http.scaladsl.model.{HttpRequest, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.json.JsonSupport
 import me.kcala.mirkoSwarm.main.Deps
-import akka.http.scaladsl.model._
 
 import scala.concurrent.Future
 
@@ -24,5 +21,11 @@ class WykopApiHandler()(implicit deps: Deps) extends JsonSupport with StrictLogg
         Unmarshal(resp.entity).to[List[Entry]]
       )
   }
+
+}
+
+object WykopApiHandler {
+
+  case class FetchLatestEntries()
 
 }

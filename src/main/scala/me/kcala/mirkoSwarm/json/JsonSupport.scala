@@ -24,7 +24,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
           fields("url").convertTo[String],
           fields("app") match {
             case JsString(s) => Some(s)
-            case JsNull => None
+            case other => None
           }
         )
       case other => spray.json.deserializationError("Invalid response from Wykop")

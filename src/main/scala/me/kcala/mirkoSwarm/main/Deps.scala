@@ -2,7 +2,7 @@ package me.kcala.mirkoSwarm.main
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.typesafe.config.Config
+import me.kcala.mirkoSwarm.config.AppConfig
 
 import scala.concurrent.ExecutionContext
 
@@ -14,5 +14,5 @@ trait Deps {
   implicit val actorSystem: ActorSystem
   implicit val actorMaterializer: ActorMaterializer
   implicit val executionContext: ExecutionContext
-  val appConfig: Config
+  val config: AppConfig
 }
