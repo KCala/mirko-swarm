@@ -13,12 +13,12 @@ class WykopApiHandler()(implicit deps: Deps) extends JsonSupport with StrictLogg
 
   import deps._
 
-  def fetchLatestEntries(): Future[List[Entry]] = {
+  def fetchLatestEntries(): Future[List[MirkoEntry]] = {
     Http()
       .singleRequest(HttpRequest(
         uri = Uri("http://a.wykop.pl/stream/index/appkey,UbPB8on5Xx")))
       .flatMap(resp =>
-        Unmarshal(resp.entity).to[List[Entry]]
+        Unmarshal(resp.entity).to[List[MirkoEntry]]
       )
   }
 

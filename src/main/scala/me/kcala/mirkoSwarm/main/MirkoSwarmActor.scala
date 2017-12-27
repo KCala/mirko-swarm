@@ -1,21 +1,18 @@
 package me.kcala.mirkoSwarm.main
 
-import akka.NotUsed
 import akka.actor.{Actor, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.ThrottleMode
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.json.JsonSupport
-import me.kcala.mirkoSwarm.wykop.Entry
+import me.kcala.mirkoSwarm.wykop.MirkoEntry
 
 import scala.collection.immutable._
 import scala.concurrent.duration.DurationLong
 import scala.util.{Failure, Success, Try}
-import akka.stream.ActorAttributes.supervisionStrategy
-import akka.stream.Supervision.resumingDecider
-import akka.stream.ThrottleMode
 
 class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupport {
 
@@ -35,14 +32,14 @@ class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupp
         throw ex
     }
     .mapAsync(10)(resp =>
-      Unmarshal(resp.entity).to[Seq[Entry]].recover {
+      Unmarshal(resp.entity).to[Seq[MirkoEntry]].recover {
         case thr =>
           println(s"Error deserialising response from wykop. $thr")
           Seq()
       }
     )
     .map(_.reverse)
-    .mapConcat[Entry](identity)
+    .mapConcat[MirkoEntry](identity)
     .statefulMapConcat { () =>
       var biggestIdSoFar: Long = 0
       entry =>
@@ -54,11 +51,11 @@ class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupp
         }
     }
     .throttle(1, 500.millis, 1, ThrottleMode.Shaping)
-    .map(_.id)
+    .map(MirkoEntry.convertToEntry)
     .toMat(Sink.foreach(e => println(e)))(Keep.right).run()
 
   override def receive: Receive = {
-    case _ => ???
+    case _ =>
   }
 }
 

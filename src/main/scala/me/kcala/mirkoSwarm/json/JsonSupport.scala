@@ -1,7 +1,7 @@
 package me.kcala.mirkoSwarm.json
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import me.kcala.mirkoSwarm.wykop.Entry
+import me.kcala.mirkoSwarm.wykop.MirkoEntry
 import spray.json.{DefaultJsonProtocol, JsNull, JsObject, JsString, JsValue, JsonReader, NullOptions, RootJsonFormat, RootJsonReader}
 
 
@@ -13,10 +13,10 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
     * as null, and sometimes as empty string
     */
   //noinspection NotImplementedCode
-  implicit object entryFormat extends RootJsonFormat[Entry] {
-    override def read(json: JsValue): Entry = json match {
+  implicit object entryFormat extends RootJsonFormat[MirkoEntry] {
+    override def read(json: JsValue): MirkoEntry = json match {
       case JsObject(fields) =>
-        Entry(
+        MirkoEntry(
           fields("id").convertTo[Long],
           fields("author").convertTo[String],
           fields.get("author_sex").map(_.convertTo[String]).filter(_.nonEmpty),
@@ -31,7 +31,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
       case other => spray.json.deserializationError("Invalid response from Wykop")
     }
 
-    override def write(obj: Entry): JsValue = ???
+    override def write(obj: MirkoEntry): JsValue = ???
   }
 
 }
