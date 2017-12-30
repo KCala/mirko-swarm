@@ -3,7 +3,7 @@ package me.kcala.mirkoSwarm.wykop
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import me.kcala.mirkoSwarm.domain.{Entry, Sex, Tag}
+import me.kcala.mirkoSwarm.model.{Entry, Sex, Tag}
 import spray.json.{JsValue, RootJsonFormat}
 
 /**

@@ -21,7 +21,7 @@ class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupp
 
   val pool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] = Http().cachedHostConnectionPool[Int]("a.wykop.pl")
 
-  Source.tick(0.seconds, 10.seconds, HttpRequest(uri = Uri("/stream/index/appkey,UbPB8on5Xx")) -> 2)
+  Source.tick(0.seconds, config.tickInterval, HttpRequest(uri = Uri("/stream/index/appkey,UbPB8on5Xx")) -> 2)
     .log(logger.underlying.getName)
     .via(pool)
     .map(_._1)
@@ -50,7 +50,6 @@ class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupp
           Seq.empty
         }
     }
-    .throttle(1, 500.millis, 1, ThrottleMode.Shaping)
     .map(MirkoEntry.convertToEntry)
     .toMat(Sink.foreach(e => println(e)))(Keep.right).run()
 

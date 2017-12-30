@@ -1,4 +1,4 @@
-package me.kcala.mirkoSwarm.domain
+package me.kcala.mirkoSwarm.model
 
 object Sex extends Enumeration {
   type Sex = Value

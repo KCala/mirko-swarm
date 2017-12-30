@@ -10,7 +10,7 @@ class AppConfig(rawConf: Config) {
 
   import AppConfigKeys._
 
-  def tickInterval: FiniteDuration = rawConf.getDuration(TickInterval)
+  val tickInterval: FiniteDuration = rawConf.getDuration(TickInterval)
 
 
 }
