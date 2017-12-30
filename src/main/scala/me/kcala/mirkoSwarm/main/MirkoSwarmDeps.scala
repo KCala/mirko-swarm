@@ -9,6 +9,5 @@ import scala.concurrent.ExecutionContext
 case class MirkoSwarmDeps(
                            actorSystem: ActorSystem,
                            actorMaterializer: ActorMaterializer,
-                           executionContext: ExecutionContext,
-                           config: AppConfig
+                           executionContext: ExecutionContext
                          ) extends Deps

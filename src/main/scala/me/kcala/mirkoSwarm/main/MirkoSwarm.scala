@@ -3,6 +3,7 @@ package me.kcala.mirkoSwarm.main
 import akka.actor.Cancellable
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
+import me.kcala.mirkoSwarm.config.AppConfig
 import me.kcala.mirkoSwarm.infrastructure.Ticker
 import me.kcala.mirkoSwarm.model.Entry
 import me.kcala.mirkoSwarm.wykop.WykopApiHandler.RestRequest
@@ -10,7 +11,7 @@ import me.kcala.mirkoSwarm.wykop.{MirkoEntry, WykopApiHandler}
 
 import scala.collection.immutable._
 
-class MirkoSwarm()(implicit deps: Deps) extends StrictLogging {
+class MirkoSwarm(config: AppConfig)(implicit deps: Deps) extends StrictLogging {
 
   import deps._
 
@@ -39,5 +40,5 @@ class MirkoSwarm()(implicit deps: Deps) extends StrictLogging {
 }
 
 object MirkoSwarm {
-  def apply()(implicit deps: Deps): MirkoSwarm = new MirkoSwarm()
+  def apply(config: AppConfig)(implicit deps: Deps): MirkoSwarm = new MirkoSwarm(config)
 }

@@ -12,9 +12,8 @@ object Main extends App {
   implicit val deps: Deps = MirkoSwarmDeps(
     actorSystem = actorSystem,
     actorMaterializer = actorMaterializer,
-    executionContext = actorSystem.dispatcher,
-    config = appConfig
+    executionContext = actorSystem.dispatcher
   )
 
-  MirkoSwarm()
+  MirkoSwarm(appConfig)(deps)
 }

@@ -17,12 +17,12 @@ class WykopApiHandler(wykopApiHost: String)(implicit deps: Deps) extends JsonSup
 
   import deps._
 
-  private val pool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] =
+  private val connectionPool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] =
     Http().cachedHostConnectionPool[Int](wykopApiHost)
 
   def mirkoFlow(): Flow[RestRequest, Seq[MirkoEntry], NotUsed] = Flow[RestRequest]
     .map(_ => HttpRequest(uri = Uri("/stream/index/appkey,UbPB8on5Xx")) -> RedundantInt)
-    .via(pool)
+    .via(connectionPool)
     .map(_._1)
     .map {
       case Success(rep) => rep
