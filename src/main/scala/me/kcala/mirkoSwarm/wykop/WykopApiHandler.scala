@@ -13,15 +13,20 @@ import me.kcala.mirkoSwarm.wykop.WykopApiHandler.{RedundantInt, RestRequest}
 import scala.collection.immutable.Seq
 import scala.util.{Failure, Success, Try}
 
-class WykopApiHandler(wykopApiHost: String)(implicit deps: Deps) extends JsonSupport with StrictLogging {
+class WykopApiHandler(wykopApiHost: String, wykopApiKey: String)(implicit deps: Deps) extends JsonSupport with StrictLogging {
 
   import deps._
 
   private val connectionPool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] =
     Http().cachedHostConnectionPool[Int](wykopApiHost)
 
+  /**
+    * This flow outputs a sequence of entries from Wykop.pl API every given interval
+    * The size of returned sequence is equal to the number of entries returned from API (around 50)
+    * It is almost sure that there will be duplicate entries between subsequent API calls
+    */
   def mirkoFlow(): Flow[RestRequest, Seq[MirkoEntry], NotUsed] = Flow[RestRequest]
-    .map(_ => HttpRequest(uri = Uri("/stream/index/appkey,UbPB8on5Xx")) -> RedundantInt)
+    .map(_ => HttpRequest(uri = Uri(mirkoEntriesEndpoint)) -> RedundantInt)
     .via(connectionPool)
     .map(_._1)
     .map {
@@ -39,6 +44,8 @@ class WykopApiHandler(wykopApiHost: String)(implicit deps: Deps) extends JsonSup
     )
     .map(_.reverse)
 
+  private lazy val mirkoEntriesEndpoint = s"/stream/index/appkey,$wykopApiKey"
+
 }
 
 object WykopApiHandler {
@@ -46,6 +53,4 @@ object WykopApiHandler {
   case class RestRequest()
 
   val RedundantInt: Int = 42
-
-  def apply(wykopApiHost: String)(implicit deps: Deps): WykopApiHandler = new WykopApiHandler(wykopApiHost)
 }

@@ -16,7 +16,7 @@ class MirkoSwarm(config: AppConfig)(implicit deps: Deps) extends StrictLogging {
   import deps._
 
   val ticker = Ticker(config.tickInterval)
-  val wykopApiHandler = WykopApiHandler(config.wykopApiHost)
+  val wykopApiHandler = new WykopApiHandler(config.wykopApiHost, config.wykopApiKey)
 
   val WykopEntriesSource: Source[Entry, Cancellable] = ticker.tickSource
     .map(_ => RestRequest())

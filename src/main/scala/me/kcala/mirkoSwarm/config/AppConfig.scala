@@ -10,6 +10,7 @@ class AppConfig(rawConf: Config) {
 
   val tickInterval: FiniteDuration = rawConf.getDuration(TickInterval)
   val wykopApiHost: String = rawConf.getString(WykopApiHost)
+  val wykopApiKey: String = rawConf.getString(WykopApiKey)
 
 
 }
@@ -27,4 +28,5 @@ object AppConfigKeys {
 
   val TickInterval = "tick-interval"
   val WykopApiHost = "wykop-api-host"
+  val WykopApiKey = "wykop-api-key"
 }
