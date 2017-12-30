@@ -1,7 +1,5 @@
 package me.kcala.mirkoSwarm.config
 
-import java.time.Duration
-
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.FiniteDuration
@@ -11,6 +9,7 @@ class AppConfig(rawConf: Config) {
   import AppConfigKeys._
 
   val tickInterval: FiniteDuration = rawConf.getDuration(TickInterval)
+  val wykopApiHost: String = rawConf.getString(WykopApiHost)
 
 
 }
@@ -25,5 +24,7 @@ object AppConfigKeys {
     scala.concurrent.duration.Duration.fromNanos(d.toNanos)
 
   val MirkoSwarm = "mirko-swarm"
-  val TickInterval = "tickInterval"
+
+  val TickInterval = "tick-interval"
+  val WykopApiHost = "wykop-api-host"
 }
