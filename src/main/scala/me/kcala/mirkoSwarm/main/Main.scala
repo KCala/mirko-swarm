@@ -16,5 +16,5 @@ object Main extends App {
     config = appConfig
   )
 
-  actorSystem.actorOf(MirkoSwarmActor.props())
+  MirkoSwarm(deps)
 }

@@ -1,6 +1,6 @@
 package me.kcala.mirkoSwarm.main
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, Cancellable, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
@@ -8,20 +8,21 @@ import akka.stream.ThrottleMode
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.json.JsonSupport
+import me.kcala.mirkoSwarm.model.Entry
 import me.kcala.mirkoSwarm.wykop.MirkoEntry
 
 import scala.collection.immutable._
 import scala.concurrent.duration.DurationLong
 import scala.util.{Failure, Success, Try}
 
-class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupport {
+class MirkoSwarm(deps: Deps) extends StrictLogging with JsonSupport {
 
   import deps._
 
 
   val pool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] = Http().cachedHostConnectionPool[Int]("a.wykop.pl")
 
-  Source.tick(0.seconds, config.tickInterval, HttpRequest(uri = Uri("/stream/index/appkey,UbPB8on5Xx")) -> 2)
+  private val WykopEntriesSource: Source[Entry, Cancellable] = Source.tick(0.seconds, config.tickInterval, HttpRequest(uri = Uri("/stream/index/appkey,UbPB8on5Xx")) -> 2)
     .log(logger.underlying.getName)
     .via(pool)
     .map(_._1)
@@ -51,13 +52,12 @@ class MirkoSwarmActor(deps: Deps) extends Actor with StrictLogging with JsonSupp
         }
     }
     .map(MirkoEntry.convertToEntry)
+
+  WykopEntriesSource
     .toMat(Sink.foreach(e => println(e)))(Keep.right).run()
 
-  override def receive: Receive = {
-    case _ =>
-  }
 }
 
-object MirkoSwarmActor {
-  def props()(implicit deps: Deps) = Props(new MirkoSwarmActor(deps))
+object MirkoSwarm {
+  def apply(deps: Deps): MirkoSwarm = new MirkoSwarm(deps)
 }
