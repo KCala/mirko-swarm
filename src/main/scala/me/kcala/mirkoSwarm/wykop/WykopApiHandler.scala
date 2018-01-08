@@ -33,11 +33,7 @@ class WykopApiHandler(wykopApiHost: String, wykopApiKey: String)(implicit deps: 
         throw ex
     }
     .mapAsync(10)(resp =>
-      Unmarshal(resp.entity).to[Seq[MirkoEntry]].recover {
-        case thr =>
-          println(s"Error deserialising response from wykop. $thr")
-          Seq()
-      }
+      Unmarshal(resp.entity).to[Seq[MirkoEntry]]
     )
     .map(_.reverse)
 

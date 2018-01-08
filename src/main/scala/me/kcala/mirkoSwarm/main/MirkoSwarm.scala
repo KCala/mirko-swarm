@@ -1,6 +1,7 @@
 package me.kcala.mirkoSwarm.main
 
 import akka.actor.Cancellable
+import akka.http.scaladsl.Http
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.config.AppConfig
@@ -35,7 +36,10 @@ class MirkoSwarm(config: AppConfig)(implicit deps: Deps) extends StrictLogging {
     .map(MirkoEntry.convertToEntry)
 
   WykopEntriesSource
-    .toMat(Sink.foreach(e => println(e)))(Keep.right).run()
+    .toMat(Sink.foreach(e => println(e)))(Keep.right).run().onComplete { _ =>
+      logger.info("Mirko stream stopped. Terminating application.")
+      Http().shutdownAllConnectionPools().flatMap(_ => actorSystem.terminate())
+  }
 
 }
 
