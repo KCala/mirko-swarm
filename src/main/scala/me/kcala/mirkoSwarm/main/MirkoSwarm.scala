@@ -9,6 +9,7 @@ import me.kcala.mirkoSwarm.infrastructure.Ticker
 import me.kcala.mirkoSwarm.model.Entry
 import me.kcala.mirkoSwarm.wykop.WykopApiHandler.RestRequest
 import me.kcala.mirkoSwarm.wykop.{MirkoEntry, WykopApiHandler}
+import me.kcala.mirkoSwarm.deilvery.HttpServer
 
 import scala.collection.immutable._
 
@@ -41,6 +42,7 @@ class MirkoSwarm(config: AppConfig)(implicit deps: Deps) extends StrictLogging {
       Http().shutdownAllConnectionPools().flatMap(_ => actorSystem.terminate())
   }
 
+  HttpServer(config.interface, config.port).start()
 }
 
 object MirkoSwarm {
