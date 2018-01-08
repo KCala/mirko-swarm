@@ -20,7 +20,7 @@ class MirkoSwarm(config: AppConfig)(implicit deps: Deps) extends StrictLogging {
 
   val WykopEntriesSource: Source[Entry, Cancellable] = ticker.tickSource
     .map(_ => RestRequest())
-    .via(wykopApiHandler.mirkoFlow())
+    .via(wykopApiHandler.wykopEntriesFetchFlow)
     .mapConcat[MirkoEntry](identity)
     .statefulMapConcat { () =>
       var biggestIdSoFar: Long = 0
