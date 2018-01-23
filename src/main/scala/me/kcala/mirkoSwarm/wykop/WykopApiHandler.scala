@@ -8,6 +8,7 @@ import akka.stream.scaladsl.Flow
 import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.json.JsonSupport
 import me.kcala.mirkoSwarm.main.Deps
+import me.kcala.mirkoSwarm.model.Entry
 import me.kcala.mirkoSwarm.wykop.WykopApiHandler.{RedundantInt, RestRequest}
 
 import scala.collection.immutable.Seq
@@ -17,12 +18,17 @@ class WykopApiHandler(wykopApiHost: String, wykopApiKey: String)(implicit deps: 
 
   import deps._
 
+  private val mirkoEntriesEndpoint = s"/stream/index/appkey,$wykopApiKey"
+
+  private val connectionPool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] =
+    Http().cachedHostConnectionPool[Int](wykopApiHost)
+
   /**
     * This flow outputs a sequence of entries from Wykop.pl API on every ping
     * The size of returned sequence is equal to the number of entries returned from API (around 50)
     * It is almost sure that there will be duplicate entries between subsequent API calls
     */
-  lazy val wykopEntriesFetchFlow: Flow[RestRequest, Seq[MirkoEntry], NotUsed] = Flow[RestRequest]
+  private val wykopEntriesFetchFlow: Flow[RestRequest, Seq[MirkoEntry], NotUsed] = Flow[RestRequest]
     .map(_ => HttpRequest(uri = Uri(mirkoEntriesEndpoint)) -> RedundantInt)
     .via(connectionPool)
     .map(_._1)
@@ -37,11 +43,22 @@ class WykopApiHandler(wykopApiHost: String, wykopApiKey: String)(implicit deps: 
     )
     .map(_.reverse)
 
-
-  private val connectionPool: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] =
-    Http().cachedHostConnectionPool[Int](wykopApiHost)
-
-  private lazy val mirkoEntriesEndpoint = s"/stream/index/appkey,$wykopApiKey"
+  val wykopEntriesFlow: Flow[Any, Entry, NotUsed] =
+    Flow[Any]
+      .map(_ => RestRequest())
+      .via(wykopEntriesFetchFlow)
+      .mapConcat[MirkoEntry](identity)
+      .statefulMapConcat { () =>
+        var biggestIdSoFar: Long = 0
+        entry =>
+          if (entry.id > biggestIdSoFar) {
+            biggestIdSoFar = entry.id
+            Seq(entry)
+          } else {
+            Seq.empty
+          }
+      }
+      .map(MirkoEntry.convertToEntry)
 
 }
 
