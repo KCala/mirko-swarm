@@ -2,7 +2,10 @@ package me.kcala.mirkoSwarm.deilvery
 
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
+import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.util.ByteString
 import me.kcala.mirkoSwarm.main.Deps
 
 import scala.concurrent.Future
@@ -11,20 +14,7 @@ class HttpServer(interface: String, port: Int)(implicit deps: Deps) {
 
   import deps._
 
-  private val route =
-    path("hello") {
-      get {
-        complete(HttpEntity(ContentTypes.`application/json`, """ {"hello": "world"} """))
-      }
-    }
 
-  def start(): Future[Http.ServerBinding] = {
-    Http().bindAndHandle(route, interface, port)
-      .map { binding =>
-        println(s"Server online at $interface:$port")
-        binding
-      }
-  }
 }
 
 object HttpServer {
