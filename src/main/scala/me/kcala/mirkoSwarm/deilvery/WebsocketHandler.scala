@@ -4,11 +4,11 @@ import akka.NotUsed
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{PathMatcher, Route}
 import akka.stream.scaladsl.{BroadcastHub, Flow, GraphDSL, Keep, Sink, Source}
 import akka.stream.{FlowShape, SourceShape}
 import com.typesafe.scalalogging.StrictLogging
-import me.kcala.mirkoSwarm.deilvery.WebsocketHandler.EntriesEndpoint
+import me.kcala.mirkoSwarm.deilvery.WebsocketHandler.{ApiPrefixSegments, EntriesEndpoint}
 import me.kcala.mirkoSwarm.json.JsonSupport
 import me.kcala.mirkoSwarm.main.Deps
 import me.kcala.mirkoSwarm.model.Entry
@@ -22,9 +22,11 @@ class WebsocketHandler(interface: String,
 
   private val routes: Route =
     concat {
-      path(EntriesEndpoint) {
-        get {
-          handleWebSocketMessages(ignoreMessagesAndAttachMirkoEntriesFlow)
+      pathPrefix(ApiPrefixSegments.map(PathMatcher(_)).reduce(_ / _)) {
+        path(EntriesEndpoint) {
+          get {
+            handleWebSocketMessages(ignoreMessagesAndAttachMirkoEntriesFlow)
+          }
         }
       }
     }
@@ -36,7 +38,9 @@ class WebsocketHandler(interface: String,
   wykopEntriesBroadcastHub.runForeach(_ => Sink.ignore)
 
   Http().bindAndHandle(routes, interface, port)
-    .foreach { _ => println(s"Handling weboscket connections at ws://$interface:$port/$EntriesEndpoint") }
+    .foreach { _ =>
+      println(s"Handling weboscket connections at ws://$interface:$port/${ApiPrefixSegments.reduce(_ + "/" + _)}/$EntriesEndpoint")
+    }
 
   private def ignoreMessagesAndAttachMirkoEntriesFlow: Flow[Message, Message, Any] = {
     val ignoreMessagesAndAttachMirkoEntries = GraphDSL.create() { implicit b =>
@@ -64,4 +68,5 @@ object WebsocketHandler {
     new WebsocketHandler(interface, port, mirkoEntriesSource)
 
   val EntriesEndpoint: String = "entries"
+  val ApiPrefixSegments: Seq[String] = "api/v1".split('/').toSeq
 }
