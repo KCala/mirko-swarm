@@ -59,3 +59,11 @@ html, body {
     stroke: #fff;
     stroke-width: 1.5px;
 }
+
+.labels {
+    font: 14px sans-serif;
+    stroke: none;
+    fill: white;
+    cursor: pointer;
+    text-anchor: middle;
+}
