@@ -53,7 +53,7 @@ html, body {
 .links line {
     stroke: white;
     stroke-opacity: 1;
-    stroke-width: 0.4;
+    stroke-width: 1;
 }
 
 .nodes circle {
@@ -61,7 +61,7 @@ html, body {
     stroke-width: 1.5px;
 }
 
-.labels {
+.tags {
     font: 14px sans-serif;
     stroke: none;
     fill: white;
