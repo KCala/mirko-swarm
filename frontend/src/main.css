@@ -51,8 +51,9 @@ html, body {
 }
 
 .links line {
-    stroke: #999;
-    stroke-opacity: 0.6;
+    stroke: white;
+    stroke-opacity: 1;
+    stroke-width: 0.4;
 }
 
 .nodes circle {
@@ -66,4 +67,5 @@ html, body {
     fill: white;
     cursor: pointer;
     text-anchor: middle;
+    text-transform: lowercase;
 }

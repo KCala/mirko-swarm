@@ -13,12 +13,11 @@ export function drawGraph(svg, graph) {
     let width = +svg.attr('width');
     let height = +svg.attr("height");
 
-    let color = d3.scaleOrdinal(d3.schemeCategory10);
-
     let simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(d => d.id))
         .force("charge", d3.forceManyBody().strength(-200))
-        .force("center", d3.forceCenter(width / 2, height / 2));
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collision", d3.forceCollide(30));
 
 
     let link = svg.append("g")
@@ -49,13 +48,13 @@ export function drawGraph(svg, graph) {
         .selectAll("text")
         .data(graph.nodes)
         .enter().append("text")
-        .attr("dx", 10)
-        .attr("dy", "1em")
+        .attr("dx", 0)
+        .attr("dy", 0)
         .style('font-size', d => Math.random() * 20 + 10 + 'px')
         .text(d => `#${d.id}`)
         .attr("text-anchor", "middle")
         .attr("nodeGroup", d => d.nodeGroup)
-        .attr("fill", d => color(d.group))
+        .attr("fill", d => "white")
         .call(d3.drag()
             .on("start", dragstarted)
             .on("drag", dragged)
@@ -69,12 +68,12 @@ export function drawGraph(svg, graph) {
 
     simulation
         .nodes(graph.nodes)
-        .on("tick", ticked);
+        .on("tick", simulationToSvg);
 
     simulation.force("link")
         .links(graph.links);
 
-    function ticked() {
+    function simulationToSvg() {
         link
             .attr("x1", d => d.source.x)
             .attr("y1", d => d.source.y)
