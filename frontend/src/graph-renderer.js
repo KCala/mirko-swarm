@@ -23,12 +23,11 @@ export function initGraph(anSvg, aGraph) {
         .force("link", d3.forceLink().id(d => d.tag))
         .force("charge", d3.forceManyBody().strength(-200))
         .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collision", d3.forceCollide(30));
-        // .force("radial", d3.forceRadial(width/2, height));
-    console.log(simulation.alpha());
+        .force("collision", d3.forceCollide(30))
+        .force("x", d3.forceX(width / 2))
+        .force("y", d3.forceY(height / 2));
 
     updateGraph();
-
     simulation.on("tick", ticked);
 }
 
