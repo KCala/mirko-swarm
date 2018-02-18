@@ -22,6 +22,7 @@ export class GraphRenderer {
      * SVG text objects representing tags.
      * They have d3 data attribute attached, which is updated by the simulation.
      */
+
     // tags;
 
     /**
@@ -36,8 +37,11 @@ export class GraphRenderer {
         this.svg = svg;
         this.graph = graph;
 
-        const width = +svg.attr('width');
-        const height = +svg.attr("height");
+        this.resizeSvgToWindow();
+        this.subscribeSvgForWindowResizeEvents();
+
+        this.width = +svg.attr('width');
+        this.height = +svg.attr("height");
 
         this.linksGroup = svg.append("g").attr("class", "links");
         this.tagsGroup = svg.append("g").attr("class", "tags");
@@ -45,11 +49,9 @@ export class GraphRenderer {
         this.simulation = d3.forceSimulation()
             .force("link", d3.forceLink().id(d => d.tag).strength(0.005))
             .force("charge", d3.forceManyBody().strength(-200))
-            .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collision", d3.forceCollide(30))
-            .force("x", d3.forceX(width / 2))
-            .force("y", d3.forceY(height / 2));
+            .force("collision", d3.forceCollide(30));
 
+        this.recenterSimulation();
         this.updateGraph();
         this.simulation.on("tick", () => this.ticked());
     }
@@ -73,9 +75,9 @@ export class GraphRenderer {
             .attr("count", d => d.count)
             .attr("fill", "#87e9ff")
             .call(d3.drag()
-                .on("start", dragStarted)
-                .on("drag", dragged)
-                .on("end", dragEnded))
+                .on("start", dragStarted.bind(this))
+                .on("drag", dragged.bind(this))
+                .on("end", dragEnded.bind(this)))
             .merge(tagsSelection);
 
         newTags.transition().duration(3000).attr("fill", "white");
@@ -105,6 +107,13 @@ export class GraphRenderer {
         this.links = linksSelection.enter().append("line").merge(linksSelection);
     }
 
+    recenterSimulation() {
+        this.simulation
+            .force("center", d3.forceCenter(this.width / 2, this.height / 2))
+            .force("x", d3.forceX(this.width / 2))
+            .force("y", d3.forceY(this.height / 2))
+    }
+
     /**
      * Represents the actual state of the simulation on the SVG representation.
      * Should be called by simulation on every tick.
@@ -121,4 +130,22 @@ export class GraphRenderer {
             .attr("y", d => d.y);
     }
 
+    resizeSvgToWindow() {
+        let contentDiv = d3.select("#content");
+        this.width = +contentDiv.style("width").slice(0, -2);
+        this.height = contentDiv.style("height").slice(0, -2);
+
+        this.svg.attr('width', this.width).attr('height', this.height);
+        if (this.simulation) {
+            this.recenterSimulation();
+            this.simulation.alpha(1).restart();
+        }
+    }
+
+    subscribeSvgForWindowResizeEvents() {
+        window.addEventListener('resize', () => {
+            console.log("resizing");
+            this.resizeSvgToWindow();
+        }, true);
+    }
 }
