@@ -2,7 +2,7 @@ import './normalize.css'
 import './main.css';
 import * as d3 from 'd3';
 // import json from './graph.json';
-import * as graphRenderer from './graph-renderer.js';
+import {GraphRenderer} from './graph-renderer.js';
 import {exampleGraph} from './graph.js';
 
 console.log("Hello mirko!");
@@ -16,7 +16,7 @@ resizeSvgToWindow(svg);
 //     graphRenderer.initGraph(svg, exampleGraph)
 // }, true);
 
-graphRenderer.initGraph(svg, exampleGraph);
+const graphRenderer = new GraphRenderer(svg, exampleGraph);
 
 console.log(exampleGraph);
 let i = 0;
