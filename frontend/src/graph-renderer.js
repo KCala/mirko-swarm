@@ -3,27 +3,17 @@ import * as d3 from 'd3';
 
 export class GraphRenderer {
 
-    /** D3 force simulation */
-    // simulation;
-
-    /** Svg "g" element containing all links */
-    // linksGroup;
-
-    /** Svg "g" element containing all tags (graph nodes) */
-    // tagsGroup;
-
     /**
-     * SVG lines representing links.
-     * They have d3 data attribute attached, which is updated by the simulation.
+     * Fields description (since ES6 has classes without fields apparently :/)
+     *
+     * simulation - D3 force simulation
+     * linksGroup - Svg "g" element containing all links
+     * tagsGroup - Svg "g" element containing all tags (graph nodes)
+     * links - SVG lines representing links.
+     *         They have d3 data attribute attached, which is updated by the simulation.
+     * tags - SVG text objects representing tags.
+     *        They have d3 data attribute attached, which is updated by the simulation.
      */
-    // links;
-
-    /**
-     * SVG text objects representing tags.
-     * They have d3 data attribute attached, which is updated by the simulation.
-     */
-
-    // tags;
 
     /**
      * Initialises the simulation.
