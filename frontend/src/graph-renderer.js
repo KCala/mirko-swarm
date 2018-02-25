@@ -50,6 +50,7 @@ export class GraphRenderer {
      * Updates simulation according to the changes in the graph object. Should be called after every change in it.
      */
     updateGraph() {
+        console.log("Updating graph!");
         this.updateTags();
         this.updateLinks();
         this.simulation.alpha(1).restart();
