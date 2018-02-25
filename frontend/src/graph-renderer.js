@@ -37,7 +37,7 @@ export class GraphRenderer {
         this.tagsGroup = svg.append("g").attr("class", "tags");
 
         this.simulation = d3.forceSimulation()
-            .force("link", d3.forceLink().id(d => d.tag).strength(0.005))
+            .force("link", d3.forceLink().id(d => d.tag).strength(0.2))
             .force("charge", d3.forceManyBody().strength(-200))
             .force("collision", d3.forceCollide(30));
 
@@ -58,21 +58,23 @@ export class GraphRenderer {
 
     updateTags() {
         this.simulation.nodes(this.graph.tags);
-        let tagsSelection = this.tagsGroup.selectAll("text").data(this.graph.tags);
-        let newTags = tagsSelection.enter().append("text")
-            .style('font-size', d => d.count * 4)
+        let oldTags = this.tagsGroup.selectAll("text").data(this.graph.tags);
+        //things below only affect new tags though!
+        let allTags = oldTags.enter().append("text")
             .text(d => `#${d.tag}`)
             .attr("text-anchor", "middle")
-            .attr("count", d => d.count)
             .attr("fill", "#87e9ff")
             .call(d3.drag()
                 .on("start", dragStarted.bind(this))
                 .on("drag", dragged.bind(this))
                 .on("end", dragEnded.bind(this)))
-            .merge(tagsSelection);
+            .merge(oldTags);
 
-        newTags.transition().duration(3000).attr("fill", "white");
-        this.tags = newTags.merge(tagsSelection);
+        allTags
+            .attr("count", d => d.count)
+            .style('font-size', d => d.count * 4 + 4)
+            .transition().duration(3000).attr("fill", "white");
+        this.tags = allTags.merge(oldTags);
 
         function dragStarted(d) {
             if (!d3.event.active) this.simulation.alphaTarget(0.3).restart();

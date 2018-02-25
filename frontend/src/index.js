@@ -10,15 +10,9 @@ let svg = d3.select("#content").append("svg");
 
 
 const graphUpdater = new GraphUpdater({
-    tags: [
-        {tag: "wypok", count: 5},
-        {tag: "mirko", count: 5},
-        {tag: "srirko", count: 5}
-    ],
-    links: [
-        {source: "wypok", target: "mirko", strength: 40}
-    ]
+    tags: [],
+    links: []
 });
 const graphRenderer = new GraphRenderer(svg, graphUpdater.graph);
 
-graphUpdater.subscribeGraphToWSUpdates().then(() => graphRenderer.updateGraph());
+graphUpdater.subscribeGraphToWSUpdates(graphRenderer.updateGraph.bind(graphRenderer));

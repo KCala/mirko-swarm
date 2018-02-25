@@ -51,7 +51,7 @@ html, body {
 }
 
 .links line {
-    stroke: white;
+    stroke: #929292;
     stroke-opacity: 1;
     stroke-width: 1;
 }
