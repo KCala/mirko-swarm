@@ -2,6 +2,7 @@ package me.kcala.mirkoSwarm.deilvery
 
 import akka.NotUsed
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{PathMatcher, Route}
@@ -12,6 +13,7 @@ import me.kcala.mirkoSwarm.deilvery.WebsocketHandler.{ApiPrefixSegments, Entries
 import me.kcala.mirkoSwarm.json.JsonSupport
 import me.kcala.mirkoSwarm.main.Deps
 import me.kcala.mirkoSwarm.model.Entry
+import spray.json.{JsValue, enrichAny}
 
 class WebsocketHandler(interface: String,
                        port: Int,
@@ -50,10 +52,11 @@ class WebsocketHandler(interface: String,
 
       val wsMessages = b.add(Flow[Message])
       val out = b.add(Flow[Message])
-      val entryToMessageFlow = Flow[Entry].map(e => TextMessage(e.toString))
+      val toJson = Flow[Entry].map(_.toJson)
+      val toWsMessage = Flow[JsValue].map(e => TextMessage(e.prettyPrint))
 
       wsMessages ~> Sink.ignore
-      entriesSource ~> entryToMessageFlow ~> out
+      entriesSource ~> toJson ~> toWsMessage ~> out
 
       FlowShape(wsMessages.in, out.out)
     }

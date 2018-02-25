@@ -1,8 +1,11 @@
 package me.kcala.mirkoSwarm.json
 
+import java.time.LocalDateTime
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import me.kcala.mirkoSwarm.model.{Entry, Sex, Tag}
 import me.kcala.mirkoSwarm.wykop.MirkoEntry
-import spray.json.{DefaultJsonProtocol, JsNull, JsObject, JsString, JsValue, JsonReader, NullOptions, RootJsonFormat, RootJsonReader}
+import spray.json.{DefaultJsonProtocol, DeserializationException, JsNull, JsObject, JsString, JsValue, JsonFormat, JsonReader, NullOptions, RootJsonFormat, RootJsonReader}
 
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOptions {
@@ -13,7 +16,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
     * as null, and sometimes as empty string
     */
   //noinspection NotImplementedCode
-  implicit object entryFormat extends RootJsonFormat[MirkoEntry] {
+  implicit object MirkoEntryFormat extends RootJsonFormat[MirkoEntry] {
     override def read(json: JsValue): MirkoEntry = json match {
       case JsObject(fields) =>
         MirkoEntry(
@@ -33,5 +36,28 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
 
     override def write(obj: MirkoEntry): JsValue = ???
   }
+
+  implicit object LocalDateTimeFormat extends JsonFormat[LocalDateTime] {
+
+    override def write(obj: LocalDateTime): JsValue = JsString(obj.toString)
+
+    override def read(json: JsValue): LocalDateTime = json match {
+      case JsString(string) => LocalDateTime.parse(string)
+      case _ => throw DeserializationException("invalid time format")
+    }
+  }
+
+  implicit object TagFormat extends JsonFormat[Tag] {
+    override def write(obj: Tag): JsValue = JsString(obj.tag)
+
+    override def read(json: JsValue): Tag = json match {
+      case JsString(s) => Tag(s)
+      case _ => throw DeserializationException("invalid tag format")
+    }
+  }
+
+  implicit val sexFormat = new EnumJsonConverter(Sex)
+
+  implicit val entryFormat = jsonFormat3(Entry)
 
 }
