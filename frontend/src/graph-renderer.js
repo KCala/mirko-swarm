@@ -101,9 +101,7 @@ export class GraphRenderer {
             .attr("count", d => d.count)
             .style('font-size', d => d.count * 4 + 4)
             .select('.tag-glow')
-            .transition().duration(5000)
-        // .attr("fill", "white")
-            .attr("fill-opacity", "0.0");
+            .transition().duration(5000).attr("fill-opacity", "0.0");
 
         this.tags = allTags;
 
