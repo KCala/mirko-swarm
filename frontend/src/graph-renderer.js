@@ -63,7 +63,6 @@ export class GraphRenderer {
         let allTags = oldTags.enter().append("text")
             .text(d => `#${d.tag}`)
             .attr("text-anchor", "middle")
-            .attr("fill", "#87e9ff")
             .call(d3.drag()
                 .on("start", dragStarted.bind(this))
                 .on("drag", dragged.bind(this))
@@ -73,8 +72,22 @@ export class GraphRenderer {
         allTags
             .attr("count", d => d.count)
             .style('font-size', d => d.count * 4 + 4)
+            .attr("fill", d => {
+                if (d.justUpdated) {
+                    switch (d.lastUpdatedBySex) {
+                        case 'male':
+                            return 'rgba(70, 171, 242, 1)';
+                        case 'female':
+                            return 'rgba(242, 70, 208, 1)';
+                        default:
+                            return 'green';
+                    }
+                } else {
+                    return 'white';
+                }
+            })
             .transition().duration(3000).attr("fill", "white");
-        this.tags = allTags.merge(oldTags);
+        this.tags = allTags;
 
         function dragStarted(d) {
             if (!d3.event.active) this.simulation.alphaTarget(0.3).restart();
@@ -96,8 +109,14 @@ export class GraphRenderer {
 
     updateLinks() {
         this.simulation.force("link").links(this.graph.links);
-        let linksSelection = this.linksGroup.selectAll("line").data(this.graph.links);
-        this.links = linksSelection.enter().append("line").merge(linksSelection);
+        let oldLinks = this.linksGroup.selectAll("line").data(this.graph.links);
+        let allLinks = oldLinks.enter()
+            .append("line")
+            .merge(oldLinks);
+
+        allLinks.attr("opacity", d => Math.min(d.strength * 0.01 + 0.20, 1));
+
+        this.links = allLinks;
     }
 
     recenterSimulation() {

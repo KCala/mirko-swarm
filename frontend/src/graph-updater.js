@@ -10,33 +10,39 @@ export class GraphUpdater {
         this.socket = new WebSocket('ws://localhost:2137/api/v1/entries');
         this.socket.onmessage = msg => {
             console.log(msg.data);
+            this.makeAlLTagsStale();
             let entry = JSON.parse(msg.data);
             this.handleEntry(entry);
             onUpdated();
         }
     }
 
+    makeAlLTagsStale() {
+        this.graph.tags.forEach(tag => tag.justUpdated = false);
+    }
+
     handleEntry(entry) {
-        entry.tags.forEach(tag => this.handleTag(tag));
+        entry.tags.forEach(tag => this.handleTag(tag, entry.authorsSex));
         this.handleLinks(entry.tags);
     }
 
-    handleTag(tag) {
+    handleTag(tag, sex) {
         let existingTag = this.graph.tags.find(et => et.tag === tag);
         if (existingTag) {
             console.log(`Adding to existing tag ${tag}`);
-            existingTag.count = existingTag.count + 1
+            existingTag.count = existingTag.count + 1;
+            existingTag.justUpdated = true;
+            existingTag.lastUpdatedBySex = sex;
         } else {
             console.log(`Creating new tag ${tag}`);
-            this.graph.tags.push({
-                tag: tag, count: 1
-            })
+            let newTag = {tag: tag, count: 1, justUpdated: true, lastUpdatedBySex: sex};
+            this.graph.tags.push(newTag)
         }
     }
 
     handleLinks(tags) {
-        console.log(`Tags size: ${tags.size}`)
-        if (tags.length === 1) {
+        console.log(`Tags length: ${tags.length}`);
+        if (tags.length <= 1) {
             console.log("No links needed in this entry!")
         }
         else if (tags.length === 2) {
