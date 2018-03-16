@@ -50,7 +50,7 @@ export class GraphRenderer {
      * Updates simulation according to the changes in the graph object. Should be called after every change in it.
      */
     updateGraph() {
-        console.log("Updating graph!");
+        // console.log("Updating graph!");
         this.updateTags();
         this.updateLinks();
         this.simulation.alpha(1).restart();
@@ -58,35 +58,53 @@ export class GraphRenderer {
 
     updateTags() {
         this.simulation.nodes(this.graph.tags);
-        let oldTags = this.tagsGroup.selectAll("text").data(this.graph.tags);
         //things below only affect new tags though!
-        let allTags = oldTags.enter().append("text")
-            .text(d => `#${d.tag}`)
+        let oldTags = this.tagsGroup.selectAll("g.tag-group").data(this.graph.tags);
+        let newTags = oldTags.enter()
+            .append("g")
+            .attr("class", "tag-group")
             .attr("text-anchor", "middle")
             .call(d3.drag()
                 .on("start", dragStarted.bind(this))
                 .on("drag", dragged.bind(this))
-                .on("end", dragEnded.bind(this)))
-            .merge(oldTags);
+                .on("end", dragEnded.bind(this)));
+
+        newTags.append("text")
+            .attr("class", "tag-text")
+            .text(d => `#${d.tag}`);
+
+        newTags.append("text")
+            .attr("class", "tag-glow")
+            .attr("filter", "url(#glow)")
+            .attr('fill-opacity', '1.0')
+            .text(d => `#${d.tag}`);
+
+        let allTags = newTags.merge(oldTags);
+        // let allTags = oldTags.merge(newTags);
+
+        allTags
+            .filter(d => d.fresh)
+            .select('.tag-glow')
+            .attr('fill-opacity', '1.0')
+            .attr("fill", d => {
+                switch (d.lastUpdatedBySex) {
+                    case 'male':
+                        return 'rgba(70, 171, 242, 1)';
+                    case 'female':
+                        return 'rgba(242, 70, 208, 1)';
+                    default:
+                        return 'white';
+                }
+            });
 
         allTags
             .attr("count", d => d.count)
             .style('font-size', d => d.count * 4 + 4)
-            .attr("fill", d => {
-                if (d.justUpdated) {
-                    switch (d.lastUpdatedBySex) {
-                        case 'male':
-                            return 'rgba(70, 171, 242, 1)';
-                        case 'female':
-                            return 'rgba(242, 70, 208, 1)';
-                        default:
-                            return 'green';
-                    }
-                } else {
-                    return 'white';
-                }
-            })
-            .transition().duration(3000).attr("fill", "white");
+            .select('.tag-glow')
+            .transition().duration(5000)
+        // .attr("fill", "white")
+            .attr("fill-opacity", "0.0");
+
         this.tags = allTags;
 
         function dragStarted(d) {
@@ -137,7 +155,7 @@ export class GraphRenderer {
             .attr("x2", d => d.target.x)
             .attr("y2", d => d.target.y);
 
-        this.tags
+        this.tags.selectAll('text')
             .attr("x", d => d.x)
             .attr("y", d => d.y);
     }

@@ -15,7 +15,22 @@
         <i id="info" class="fas fa-lg fa-info-circle">info</i>
     </div>
 
-    <div id="content"></div>
+    <div id="content">
+        <svg>
+            <defs>
+                <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="3 3" result="glow"/>
+                    <feMerge>
+                        <feMergeNode in="glow"/>
+                        <feMergeNode in="glow"/>
+                        <feMergeNode in="glow"/>
+                    </feMerge>
+                </filter>
+            </defs>
+            <!--<text style="filter: url(#glow); fill: red" x="500" y="500">Simple Glow</text>-->
+            <!--<text x="500" y="500" style="fill: white">Simple Glow</text>-->
+        </svg>
+    </div>
 </div>
 
 

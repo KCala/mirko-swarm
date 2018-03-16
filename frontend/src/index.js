@@ -6,7 +6,7 @@ import {GraphRenderer} from './graph-renderer.js';
 import {GraphUpdater} from './graph-updater.js';
 
 console.log("Hello mirko!");
-let svg = d3.select("#content").append("svg");
+let svg = d3.select("#content").select("svg");
 
 
 const graphUpdater = new GraphUpdater({
@@ -16,3 +16,4 @@ const graphUpdater = new GraphUpdater({
 const graphRenderer = new GraphRenderer(svg, graphUpdater.graph);
 
 graphUpdater.subscribeGraphToWSUpdates(graphRenderer.updateGraph.bind(graphRenderer));
+

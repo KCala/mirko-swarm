@@ -18,7 +18,7 @@ export class GraphUpdater {
     }
 
     makeAlLTagsStale() {
-        this.graph.tags.forEach(tag => tag.justUpdated = false);
+        this.graph.tags.forEach(tag => tag.fresh = false);
     }
 
     handleEntry(entry) {
@@ -29,21 +29,22 @@ export class GraphUpdater {
     handleTag(tag, sex) {
         let existingTag = this.graph.tags.find(et => et.tag === tag);
         if (existingTag) {
-            console.log(`Adding to existing tag ${tag}`);
+            // console.log(`Adding to existing tag ${tag}`);
             existingTag.count = existingTag.count + 1;
-            existingTag.justUpdated = true;
+            existingTag.fresh = true;
             existingTag.lastUpdatedBySex = sex;
+            // console.log(`e!: ${JSON.stringify(existingTag)}`)
         } else {
-            console.log(`Creating new tag ${tag}`);
-            let newTag = {tag: tag, count: 1, justUpdated: true, lastUpdatedBySex: sex};
+            // console.log(`Creating new tag ${tag}`);
+            let newTag = {tag: tag, count: 1, fresh: true, lastUpdatedBySex: sex};
+            // console.log(`n!: ${JSON.stringify(newTag)}`);
             this.graph.tags.push(newTag)
         }
     }
 
     handleLinks(tags) {
-        console.log(`Tags length: ${tags.length}`);
         if (tags.length <= 1) {
-            console.log("No links needed in this entry!")
+            // console.log("No links needed in this entry!")
         }
         else if (tags.length === 2) {
             this.handleLinkOneToOne(tags[0], tags[1])
@@ -61,14 +62,14 @@ export class GraphUpdater {
         let existingLink = this.findLinkBothDirections(tagA, tagB);
         if (existingLink) {
             existingLink.strength = existingLink.strength + 1;
-            console.log(`Strengthening existing link ${tagA}--[${existingLink.strength}]--${tagB}`)
+            // console.log(`Strengthening existing link ${tagA}--[${existingLink.strength}]--${tagB}`)
         } else {
             this.graph.links.push({
                 source: tagA,
                 target: tagB,
                 strength: 1
             });
-            console.log(`Linking new tags ${tagA}--[1]--${tagB}`)
+            // console.log(`Linking new tags ${tagA}--[1]--${tagB}`)
         }
     }
 
