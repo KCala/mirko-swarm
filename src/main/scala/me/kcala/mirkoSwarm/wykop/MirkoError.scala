@@ -8,7 +8,7 @@ case class MirkoError(
                      )
 
 object MirkoError {
-  def convertToError(error: MirkoError): SwarmError = SwarmError(error.message)
+  def convertToSwarmError(error: MirkoError): SwarmError = SwarmError(error.message)
 
   val RequestQuotaExceeded = 5
 }

@@ -9,13 +9,15 @@ object Main extends App with StrictLogging {
 
   implicit val actorSystem: ActorSystem = ActorSystem(AppConfigKeys.MirkoSwarm)
 
-  val decider: Supervision.Decider = {e =>
+  val decider: Supervision.Decider = { e =>
     logger.error("Unhandled exception in stream", e)
     Supervision.Restart
   }
 
   implicit val actorMaterializer: ActorMaterializer =
-    ActorMaterializer(ActorMaterializerSettings(actorSystem).withSupervisionStrategy(decider))
+    ActorMaterializer(ActorMaterializerSettings(actorSystem)
+      //      .withSupervisionStrategy(decider)
+    )
 
   val appConfig = AppConfig(actorSystem.settings.config.getConfig(AppConfigKeys.MirkoSwarm))
 

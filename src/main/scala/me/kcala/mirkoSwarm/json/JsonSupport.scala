@@ -3,6 +3,7 @@ package me.kcala.mirkoSwarm.json
 import java.time.LocalDateTime
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import me.kcala.mirkoSwarm.model.{Entry, Sex, SwarmError, Tag}
 import me.kcala.mirkoSwarm.wykop.{MirkoEntry, MirkoError}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsNull, JsObject, JsString, JsValue, JsonFormat, JsonReader, NullOptions, RootJsonFormat, RootJsonReader}
@@ -46,6 +47,16 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
     }
 
     override def write(obj: MirkoError): JsValue = ???
+  }
+
+  implicit object MirkoResponseFormat extends RootJsonFormat[Either[MirkoError, Seq[MirkoEntry]]] {
+    override def read(json: JsValue): Either[MirkoError, Seq[MirkoEntry]] = json match {
+      case JsObject(fields) =>
+        if (fields.contains("error")) Left(json.convertTo[MirkoError]) else Right(json.convertTo[Seq[MirkoEntry]])
+      case other => spray.json.deserializationError("Can't parse response from Wykop API. Must be really weird stuff.")
+    }
+
+    override def write(obj: Either[MirkoError, Seq[MirkoEntry]]): JsValue = ???
   }
 
   implicit object LocalDateTimeFormat extends JsonFormat[LocalDateTime] {

@@ -9,6 +9,7 @@ class AppConfig(rawConf: Config) {
   import AppConfigKeys._
 
   val tickInterval: FiniteDuration = rawConf.getDuration(TickInterval)
+  val waitOnWykopApiError: FiniteDuration = rawConf.getDuration(WaitOnWykopApiError)
   val wykopApiHost: String = rawConf.getString(WykopApiHost)
   val wykopApiKey: String = rawConf.getString(WykopApiKey)
   val interface: String = rawConf.getString(Interface)
@@ -29,6 +30,7 @@ object AppConfigKeys {
   val MirkoSwarm = "mirko-swarm"
 
   val TickInterval = "tick-interval"
+  val WaitOnWykopApiError = "wait-on-wykop-api-error"
   val WykopApiHost = "wykop-api-host"
   val WykopApiKey = "wykop-api-key"
   val Interface = "interface"
