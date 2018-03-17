@@ -65,13 +65,26 @@ class WykopEntriesSource(wykopApiHost: String, wykopApiKey: String, interval: Fi
       import GraphDSL.Implicits._
       val entriesSource = tickedEntriesSource(waitOnFail, interval).mapMaterializedValue(_ => NotUsed).map(Right(_))
       //TODO this shouldn't be single but on every tick so clients know what's up. However drop it after first successfull entry
-      val errorSource = Source(Seq(Left(swarmError)))
+      val errorSource = Source.tick(0.seconds, interval, Left(swarmError))
       val merge = b.add(Merge[Either[SwarmError, Entry]](2))
+
+      val filter = b.add(Flow[Either[SwarmError, Entry]].statefulMapConcat(() => {
+        var properEntryAppeared = false
+        either => {
+          if (properEntryAppeared && either.isLeft) Seq()
+          else {
+            if (either.isRight) properEntryAppeared = true
+            Seq(either)
+          }
+        }
+      }))
 
       errorSource ~> merge
       entriesSource ~> merge
 
-      SourceShape(merge.out)
+      merge ~> filter
+
+      SourceShape(filter.out)
     }
     Source.fromGraph(graph)
   }
