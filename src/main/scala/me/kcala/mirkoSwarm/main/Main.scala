@@ -11,7 +11,7 @@ object Main extends App with StrictLogging {
 
   val decider: Supervision.Decider = {e =>
     logger.error("Unhandled exception in stream", e)
-    Supervision.Stop
+    Supervision.Restart
   }
 
   implicit val actorMaterializer: ActorMaterializer =

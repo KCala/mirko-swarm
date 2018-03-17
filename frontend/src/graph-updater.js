@@ -2,23 +2,39 @@ import * as d3 from 'd3';
 
 export class GraphUpdater {
     constructor(initialGraph) {
+        // this.wsAddress = 'ws://localhost:2137/api/v1/entries';
+        this.wsAddress = 'ws://192.168.0.108:2137/api/v1/entries';
         this.graph = initialGraph;
     }
 
     subscribeGraphToWSUpdates(onUpdated) {
-        console.log("Connecting to WS");
-        this.socket = new WebSocket('ws://localhost:2137/api/v1/entries');
+        console.log("Connecting to WS...");
+        let that = this;
+        this.socket = new WebSocket(this.wsAddress);
+        console.log("Connected to WS!");
         this.socket.onmessage = msg => {
             console.log(msg.data);
             this.makeAlLTagsStale();
-            let entry = JSON.parse(msg.data);
-            this.handleEntry(entry);
+            let message = JSON.parse(msg.data);
+            this.handleMessage(message);
             onUpdated();
-        }
+        };
+        this.socket.onclose = e => {
+            console.error(`WS closed. Retrying in 10 seconds`);
+            setTimeout(() => that.subscribeGraphToWSUpdates(onUpdated), 10000)
+        };
     }
 
     makeAlLTagsStale() {
         this.graph.tags.forEach(tag => tag.fresh = false);
+    }
+
+    handleMessage(message) {
+        if(message.error) {
+            this.handleError(message)
+        } else {
+            this.handleEntry(message)
+        }
     }
 
     handleEntry(entry) {
@@ -77,6 +93,10 @@ export class GraphUpdater {
         this.graph.links.find(link =>
             link.source === pointA && link.target === pointB
             || link.source === pointB && link.target === pointA)
+    }
+
+    handleError(error) {
+        console.log(`Error on backend! [${error.error}]`)
     }
 }
 

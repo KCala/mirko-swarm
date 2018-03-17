@@ -3,8 +3,8 @@ package me.kcala.mirkoSwarm.json
 import java.time.LocalDateTime
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import me.kcala.mirkoSwarm.model.{Entry, Sex, Tag}
-import me.kcala.mirkoSwarm.wykop.MirkoEntry
+import me.kcala.mirkoSwarm.model.{Entry, Sex, SwarmError, Tag}
+import me.kcala.mirkoSwarm.wykop.{MirkoEntry, MirkoError}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsNull, JsObject, JsString, JsValue, JsonFormat, JsonReader, NullOptions, RootJsonFormat, RootJsonReader}
 
 
@@ -37,6 +37,17 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
     override def write(obj: MirkoEntry): JsValue = ???
   }
 
+  implicit object MirkoErrorFormat extends RootJsonFormat[MirkoError] {
+    override def read(json: JsValue): MirkoError = json match {
+      case JsObject(fields) =>
+        val code +: message +: _ = fields("error").asJsObject().getFields("code", "message")
+        MirkoError(code.convertTo[Int], message.convertTo[String])
+      case other => spray.json.deserializationError("Can't even parse error properly from Wykop")
+    }
+
+    override def write(obj: MirkoError): JsValue = ???
+  }
+
   implicit object LocalDateTimeFormat extends JsonFormat[LocalDateTime] {
 
     override def write(obj: LocalDateTime): JsValue = JsString(obj.toString)
@@ -59,5 +70,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOpt
   implicit val sexFormat = new EnumJsonConverter(Sex)
 
   implicit val entryFormat = jsonFormat3(Entry)
+
+  implicit val swarmErrorFormat = jsonFormat1(SwarmError)
 
 }

@@ -12,12 +12,12 @@ import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.deilvery.WebsocketHandler.{ApiPrefixSegments, EntriesEndpoint}
 import me.kcala.mirkoSwarm.json.JsonSupport
 import me.kcala.mirkoSwarm.main.Deps
-import me.kcala.mirkoSwarm.model.Entry
+import me.kcala.mirkoSwarm.model.{Entry, SwarmError}
 import spray.json.{JsValue, enrichAny}
 
 class WebsocketHandler(interface: String,
                        port: Int,
-                       mirkoEntriesSource: Source[Entry, _])(implicit deps: Deps)
+                       mirkoEntriesSource: Source[Either[SwarmError, Entry], _])(implicit deps: Deps)
   extends StrictLogging with JsonSupport {
 
   import deps._
@@ -33,7 +33,7 @@ class WebsocketHandler(interface: String,
       }
     }
 
-  val wykopEntriesBroadcastHub: Source[Entry, NotUsed] = mirkoEntriesSource
+  val wykopEntriesBroadcastHub: Source[Either[SwarmError, Entry], NotUsed] = mirkoEntriesSource
     .toMat(BroadcastHub.sink(bufferSize = 256))(Keep.right).run()
 
   //Consumes stream when there are no subscribers, in order to avoiding clogging
@@ -48,11 +48,14 @@ class WebsocketHandler(interface: String,
     val ignoreMessagesAndAttachMirkoEntries = GraphDSL.create() { implicit b =>
       import GraphDSL.Implicits._
 
-      val entriesSource: SourceShape[Entry] = b.add(wykopEntriesBroadcastHub)
+      val entriesSource: SourceShape[Either[SwarmError, Entry]] = b.add(wykopEntriesBroadcastHub)
 
       val wsMessages = b.add(Flow[Message])
       val out = b.add(Flow[Message])
-      val toJson = Flow[Entry].map(_.toJson)
+      val toJson = Flow[Either[SwarmError, Entry]].map {
+        case Right(r) => r.toJson
+        case Left(l) => l.toJson
+      }
       val toWsMessage = Flow[JsValue].map(e => TextMessage(e.prettyPrint))
 
       wsMessages ~> Sink.ignore
@@ -67,7 +70,7 @@ class WebsocketHandler(interface: String,
 object WebsocketHandler {
   def apply(interface: String,
             port: Int,
-            mirkoEntriesSource: Source[Entry, _])(implicit deps: Deps): WebsocketHandler =
+            mirkoEntriesSource: Source[Either[SwarmError, Entry], _])(implicit deps: Deps): WebsocketHandler =
     new WebsocketHandler(interface, port, mirkoEntriesSource)
 
   val EntriesEndpoint: String = "entries"

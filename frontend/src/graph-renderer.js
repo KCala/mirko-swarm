@@ -33,8 +33,9 @@ export class GraphRenderer {
         this.width = +svg.attr('width');
         this.height = +svg.attr("height");
 
-        this.linksGroup = svg.append("g").attr("class", "links");
-        this.tagsGroup = svg.append("g").attr("class", "tags");
+        this.viewPort = svg.append("g").attr("class", "view-port");
+        this.linksGroup = this.viewPort.append("g").attr("class", "links");
+        this.tagsGroup = this.viewPort.append("g").attr("class", "tags");
 
         this.simulation = d3.forceSimulation()
             .force("link", d3.forceLink().id(d => d.tag).strength(0.2))
@@ -44,6 +45,10 @@ export class GraphRenderer {
         this.recenterSimulation();
         this.updateGraph();
         this.simulation.on("tick", () => this.ticked());
+
+        d3.zoom()
+            // .scaleExtent([1, 50]
+            .on("zoom", this.zoomHandler.bind(this))(svg);
     }
 
     /**
@@ -156,6 +161,10 @@ export class GraphRenderer {
         this.tags.selectAll('text')
             .attr("x", d => d.x)
             .attr("y", d => d.y);
+    }
+
+    zoomHandler() {
+        this.viewPort.attr("transform", d3.event.transform);
     }
 
     resizeSvgToWindow() {
