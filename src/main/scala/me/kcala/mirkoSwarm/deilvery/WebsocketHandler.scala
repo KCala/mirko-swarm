@@ -44,27 +44,13 @@ class WebsocketHandler(interface: String,
       println(s"Handling weboscket connections at ws://$interface:$port/${ApiPrefixSegments.reduce(_ + "/" + _)}/$EntriesEndpoint")
     }
 
-  private def ignoreMessagesAndAttachMirkoEntriesFlow: Flow[Message, Message, Any] = {
-    val ignoreMessagesAndAttachMirkoEntries = GraphDSL.create() { implicit b =>
-      import GraphDSL.Implicits._
-
-      val entriesSource: SourceShape[Either[SwarmError, Entry]] = b.add(wykopEntriesBroadcastHub)
-
-      val wsMessages = b.add(Flow[Message])
-      val out = b.add(Flow[Message])
-      val toJson = Flow[Either[SwarmError, Entry]].map {
-        case Right(r) => r.toJson
-        case Left(l) => l.toJson
-      }
-      val toWsMessage = Flow[JsValue].map(e => TextMessage(e.prettyPrint))
-
-      wsMessages ~> Sink.ignore
-      entriesSource ~> toJson ~> toWsMessage ~> out
-
-      FlowShape(wsMessages.in, out.out)
-    }
-    Flow.fromGraph(ignoreMessagesAndAttachMirkoEntries)
-  }
+  private def ignoreMessagesAndAttachMirkoEntriesFlow: Flow[Message, Message, Any] = Flow.fromSinkAndSource(
+    Sink.ignore,
+    wykopEntriesBroadcastHub.map {
+      case Right(r) => r.toJson
+      case Left(l) => l.toJson
+    })
+    .map(json => TextMessage(json.prettyPrint))
 }
 
 object WebsocketHandler {

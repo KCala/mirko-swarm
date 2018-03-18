@@ -2,8 +2,8 @@ import * as d3 from 'd3';
 
 export class GraphUpdater {
     constructor(initialGraph) {
-        // this.wsAddress = 'ws://localhost:2137/api/v1/entries';
-        this.wsAddress = 'ws://192.168.0.108:2137/api/v1/entries';
+        this.wsAddress = 'ws://localhost:2137/api/v1/entries';
+        // this.wsAddress = 'ws://192.168.0.108:2137/api/v1/entries';
         this.graph = initialGraph;
     }
 

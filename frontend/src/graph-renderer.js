@@ -39,15 +39,14 @@ export class GraphRenderer {
 
         this.simulation = d3.forceSimulation()
             .force("link", d3.forceLink().id(d => d.tag).strength(0.2))
-            .force("charge", d3.forceManyBody().strength(-200))
-            .force("collision", d3.forceCollide(30));
+        // .force("charge", d3.forceManyBody().strength(-200)) //TODO this is super resource heavy. May consider leaving this off, or better - providing a switch for the users
 
         this.recenterSimulation();
         this.updateGraph();
         this.simulation.on("tick", () => this.ticked());
 
         d3.zoom()
-            // .scaleExtent([1, 50]
+        // .scaleExtent([1, 50]
             .on("zoom", this.zoomHandler.bind(this))(svg);
     }
 
@@ -58,6 +57,7 @@ export class GraphRenderer {
         // console.log("Updating graph!");
         this.updateTags();
         this.updateLinks();
+        this.simulation.force("collision", d3.forceCollide(d => d.count * 4 + 20)); //TODO should depend on lenght of the text actually
         this.simulation.alpha(1).restart();
     }
 
