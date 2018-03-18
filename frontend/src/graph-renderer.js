@@ -37,9 +37,17 @@ export class GraphRenderer {
         this.linksGroup = this.viewPort.append("g").attr("class", "links");
         this.tagsGroup = this.viewPort.append("g").attr("class", "tags");
 
-        this.simulation = d3.forceSimulation()
-            .force("link", d3.forceLink().id(d => d.tag).strength(0.2))
-        // .force("charge", d3.forceManyBody().strength(-200)) //TODO this is super resource heavy. May consider leaving this off, or better - providing a switch for the users
+        this.center = this.viewPort.append("circle").attr("r", 4).attr("fill", "white").attr("opacity", "0.2");
+        //r="40" stroke="black" stroke-width="3" fill="red" />
+
+        this.simulation = d3.forceSimulation();
+        this.simulation.velocityDecay(0.95);
+        this.simulation.alphaDecay(0.001);
+        this.simulation.force("link", d3.forceLink().id(d => d.tag).strength(d => d.strength ));
+        // this.simulation.force("link", d3.forceLink().id(d => d.tag).strength(0.2));
+        this.simulation.force("charge", d3.forceManyBody().strength(d => -(d.count * d.tag.length * 100 + 10)));
+        // this.simulation.force("gravity", d3.forceManyBody().strength(10).distanceMin(200));
+        // this.simulation.force("collision", d3.forceCollide(d => d.count * d.tag.length + 1 * 1.1 + 20));
 
         this.recenterSimulation();
         this.updateGraph();
@@ -57,11 +65,19 @@ export class GraphRenderer {
         // console.log("Updating graph!");
         this.updateTags();
         this.updateLinks();
-        this.simulation.force("collision", d3.forceCollide(d => d.count * 4 + 20)); //TODO should depend on lenght of the text actually
+
         this.simulation.alpha(1).restart();
     }
 
     updateTags() {
+        this.graph.tags.forEach(tag => {
+            if(!tag.x) {
+                // tag.x = Math.floor(Math.random() * this.width);
+                // tag.y = Math.floor(Math.random() * this.height);
+                tag.x = this.width/2
+                tag.y = this.height/2
+            }
+        });
         this.simulation.nodes(this.graph.tags);
         //things below only affect new tags though!
         let oldTags = this.tagsGroup.selectAll("g.tag-group").data(this.graph.tags);
@@ -141,10 +157,15 @@ export class GraphRenderer {
     }
 
     recenterSimulation() {
-        this.simulation
-            .force("center", d3.forceCenter(this.width / 2, this.height / 2))
-            .force("x", d3.forceX(this.width / 2))
-            .force("y", d3.forceY(this.height / 2))
+
+        // this.simulation.force("center", d3.forceCenter(this.width / 2, this.height / 2))
+        this.simulation.force("x", d3.forceX(this.width / 2).strength(0.1));
+        this.simulation.force("y", d3.forceY(this.height / 2).strength(0.1));
+        // let radius = Math.min(this.height, this.width)/3
+        // console.log(radius)
+        // this.simulation.force("radial", d3.forceRadial(Math.min(this.height, this.width)/3, this.width/2, this.height/2));
+        this.center.attr("cx", this.width/2);
+        this.center.attr("cy", this.height/2);
     }
 
     /**
