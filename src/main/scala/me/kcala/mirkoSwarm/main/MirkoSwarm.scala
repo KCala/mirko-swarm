@@ -1,15 +1,24 @@
 package me.kcala.mirkoSwarm.main
 
+import akka.NotUsed
+import akka.actor.Cancellable
+import akka.stream.scaladsl.{Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.config.AppConfig
 import me.kcala.mirkoSwarm.deilvery.WebsocketHandler
-import me.kcala.mirkoSwarm.wykop.WykopEntriesSource
+import me.kcala.mirkoSwarm.model.{Entry, SwarmError}
+import me.kcala.mirkoSwarm.wykop.WykopApiHandler
 
 class MirkoSwarm(config: AppConfig)(implicit deps: Deps) extends StrictLogging {
 
-  val wykopApiHandler = new WykopEntriesSource(config.wykopApiHost, config.wykopApiKey, config.tickInterval, config.waitOnWykopApiError)
-  WebsocketHandler(config.interface, config.port, wykopApiHandler.entriesSource)
-  //TODO add `asSink` method to websocketHandler for nicer API
+  import deps._
+
+  val wykopApiHandler: WykopApiHandler = new WykopApiHandler(config.wykopApiHost, config.wykopApiKey, config.tickInterval, config.waitOnWykopApiError)
+
+  val entriesSource: Source[Either[SwarmError, Entry], Cancellable] = wykopApiHandler.entriesSource
+  val websocketSink: Sink[Either[SwarmError, Entry], NotUsed] = WebsocketHandler.sink(config.interface, config.port)
+
+  entriesSource.to(websocketSink).run()
 }
 
 object MirkoSwarm {

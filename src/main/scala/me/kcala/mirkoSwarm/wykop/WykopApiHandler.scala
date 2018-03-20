@@ -11,13 +11,13 @@ import com.typesafe.scalalogging.StrictLogging
 import me.kcala.mirkoSwarm.json.JsonSupport
 import me.kcala.mirkoSwarm.main.Deps
 import me.kcala.mirkoSwarm.model.{Entry, SwarmError}
-import me.kcala.mirkoSwarm.wykop.WykopEntriesSource.{WykopApiException, _}
+import me.kcala.mirkoSwarm.wykop.WykopApiHandler.{WykopApiException, _}
 
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.{DurationLong, FiniteDuration}
 import scala.util.{Failure, Success, Try}
 
-class WykopEntriesSource(wykopApiHost: String, wykopApiKey: String, interval: FiniteDuration, waitOnFail: FiniteDuration)(implicit deps: Deps) extends JsonSupport with StrictLogging {
+class WykopApiHandler(wykopApiHost: String, wykopApiKey: String, interval: FiniteDuration, waitOnFail: FiniteDuration)(implicit deps: Deps) extends JsonSupport with StrictLogging {
 
   import deps._
 
@@ -59,7 +59,7 @@ class WykopEntriesSource(wykopApiHost: String, wykopApiKey: String, interval: Fi
         case ex: WykopApiException => singleErrorAndThenEntriesSource(ex.swarmError)
       })
 
-  def singleErrorAndThenEntriesSource(swarmError: SwarmError): Source[Either[SwarmError, Entry], NotUsed] = {
+  private def singleErrorAndThenEntriesSource(swarmError: SwarmError): Source[Either[SwarmError, Entry], NotUsed] = {
     logger.info(s"Sending error to clients. Will retry to reconnect to wykop in $waitOnFail")
     val graph: Graph[SourceShape[Either[SwarmError, Entry]], NotUsed] = GraphDSL.create() { implicit b =>
       import GraphDSL.Implicits._
@@ -89,7 +89,7 @@ class WykopEntriesSource(wykopApiHost: String, wykopApiKey: String, interval: Fi
     Source.fromGraph(graph)
   }
 
-  def tickedEntriesSource(initialDelay: FiniteDuration, interval: FiniteDuration): Source[Entry, Cancellable] = {
+  private def tickedEntriesSource(initialDelay: FiniteDuration, interval: FiniteDuration): Source[Entry, Cancellable] = {
     logger.info(s"Creating new wykop entries ticking source. Initial delay: [$initialDelay]. Interval: [$interval]")
     Source.tick(initialDelay, interval, Tick())
       .map(_ => RestRequest())
@@ -110,7 +110,7 @@ class WykopEntriesSource(wykopApiHost: String, wykopApiKey: String, interval: Fi
 
 }
 
-object WykopEntriesSource {
+object WykopApiHandler {
 
   case class RestRequest()
 

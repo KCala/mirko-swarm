@@ -15,7 +15,7 @@ import me.kcala.mirkoSwarm.main.Deps
 import me.kcala.mirkoSwarm.model.{Entry, SwarmError}
 import spray.json.{JsValue, enrichAny}
 
-class WebsocketHandler(interface: String,
+private class WebsocketHandler(interface: String,
                        port: Int,
                        mirkoEntriesSource: Source[Either[SwarmError, Entry], _])(implicit deps: Deps)
   extends StrictLogging with JsonSupport {
@@ -33,20 +33,14 @@ class WebsocketHandler(interface: String,
       }
     }
 
-  val wykopEntriesBroadcastHub: Source[Either[SwarmError, Entry], NotUsed] = mirkoEntriesSource
-    .toMat(BroadcastHub.sink(bufferSize = 256))(Keep.right).run()
-
-  //Consumes stream when there are no subscribers, in order to avoiding clogging
-  wykopEntriesBroadcastHub.runForeach(_ => Sink.ignore)
-
   Http().bindAndHandle(routes, interface, port)
     .foreach { _ =>
-      println(s"Handling weboscket connections at ws://$interface:$port/${ApiPrefixSegments.reduce(_ + "/" + _)}/$EntriesEndpoint")
+      logger.info(s"Handling weboscket connections at ws://$interface:$port/${ApiPrefixSegments.reduce(_ + "/" + _)}/$EntriesEndpoint")
     }
 
   private def ignoreMessagesAndAttachMirkoEntriesFlow: Flow[Message, Message, Any] = Flow.fromSinkAndSource(
     Sink.ignore,
-    wykopEntriesBroadcastHub.map {
+    mirkoEntriesSource.map {
       case Right(r) => r.toJson
       case Left(l) => l.toJson
     })
@@ -54,11 +48,15 @@ class WebsocketHandler(interface: String,
 }
 
 object WebsocketHandler {
-  def apply(interface: String,
-            port: Int,
-            mirkoEntriesSource: Source[Either[SwarmError, Entry], _])(implicit deps: Deps): WebsocketHandler =
-    new WebsocketHandler(interface, port, mirkoEntriesSource)
-
   val EntriesEndpoint: String = "entries"
   val ApiPrefixSegments: Seq[String] = "api/v1".split('/').toSeq
+
+  def sink(interface: String, port: Int)(implicit deps: Deps): Sink[Either[SwarmError, Entry], NotUsed] = {
+    BroadcastHub.sink[Either[SwarmError, Entry]](bufferSize = 256).mapMaterializedValue(entriesSource => {
+      import deps._
+      entriesSource.runForeach(_ => Sink.ignore)
+      new WebsocketHandler(interface, port, entriesSource)
+      NotUsed
+    })
+  }
 }
