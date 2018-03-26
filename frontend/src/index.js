@@ -1,19 +1,22 @@
 import './normalize.css'
 import './main.css';
-import * as d3 from 'd3';
-// import json from './graph.json';
-import {GraphRenderer} from './graph-renderer.js';
-import {GraphUpdater} from './graph-updater.js';
+
+import {Simulation} from './simulation.js';
+import {BackendClient} from "./backend-client";
+import {Renderer} from "./renderer";
 
 console.log("Hello mirko!");
-let svg = d3.select("#content").select("svg");
 
-
-const graphUpdater = new GraphUpdater({
+const graph = {
     tags: [],
     links: []
+};
+
+const backendClient = new BackendClient(graph);
+const simulation = new Simulation(backendClient.graph);
+const renderer = new Renderer(graph);
+
+backendClient.startUpdatingGraphOnWebsocketMessages(simulation.updateGraph.bind(simulation));
+simulation.startSimulation(g => {
+    // console.log(g)
 });
-const graphRenderer = new GraphRenderer(svg, graphUpdater.graph);
-
-graphUpdater.subscribeGraphToWSUpdates(graphRenderer.updateGraph.bind(graphRenderer));
-
