@@ -20,3 +20,4 @@ backendClient.startUpdatingGraphOnWebsocketMessages(simulation.updateGraph.bind(
 simulation.startSimulation(g => {
     // console.log(g)
 });
+renderer.start();

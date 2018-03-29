@@ -1,17 +1,16 @@
-import * as d3 from 'd3';
-
 export class BackendClient {
     constructor(initialGraph) {
-        this.wsAddress = 'ws://localhost:2137/api/v1/entries';
-        // this.wsAddress = 'ws://192.168.0.108:2137/api/v1/entries';
+        this.wsAddress = `ws://${window.location.hostname}:2137/api/v1/entries`;
         this.graph = initialGraph;
     }
 
     startUpdatingGraphOnWebsocketMessages(onUpdated) {
-        console.log("Connecting to WS...");
+        console.log(`Connecting to WS at [${this.wsAddress}]...`);
         let that = this;
         this.socket = new WebSocket(this.wsAddress);
-        console.log("Connected to WS!");
+        this.socket.onopen = () => {
+            console.log("Connected to WS!");
+        };
         this.socket.onmessage = msg => {
             console.log(msg.data);
             let message = JSON.parse(msg.data);
@@ -22,6 +21,10 @@ export class BackendClient {
             console.error(`WS closed. Retrying in 10 seconds`);
             setTimeout(() => that.startUpdatingGraphOnWebsocketMessages(onUpdated), 10000)
         };
+        this.socket.onerror = e => {
+            console.error(`WS error!. ${e}. Retrying in 10 seconds`);
+            setTimeout(() => that.startUpdatingGraphOnWebsocketMessages(onUpdated), 10000)
+        }
     }
 
     // makeAlLTagsStale() {
@@ -94,7 +97,7 @@ export class BackendClient {
             || link.source === pointB && link.target === pointA)
     }
 
-    handleError(error) {
+    static handleError(error) {
         console.log(`Error on backend! [${error.error}]`)
     }
 }
