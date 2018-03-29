@@ -27,10 +27,6 @@ export class BackendClient {
         }
     }
 
-    // makeAlLTagsStale() {
-    //     this.graph.tags.forEach(tag => tag.fresh = false);
-    // }
-
     handleMessage(message) {
         if(message.error) {
             this.handleError(message)

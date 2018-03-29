@@ -79,8 +79,19 @@ export class Renderer {
             fontFamily: 'Arial',
             fontSize: (tag.count * 4 + 8) * 2,
             fill: '#ffffff',
-            alpha: 0
+            stroke: tag.highlightColor,
+            strokeThickness: strokeThickness(tag),
+            lineJoin: "round"
         });
+
+        function strokeThickness(tag) {
+            const multiplier = 8;
+            if(!isNaN(tag.highlightAlpha)) {
+                return tag.highlightAlpha * multiplier
+            } else {
+                return multiplier;
+            }
+        }
     }
 
     setTextPosition(text, tag) {
