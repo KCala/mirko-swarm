@@ -39,7 +39,7 @@ export class Simulation {
      * Has to be called after every modification of the graph from the outside
      */
     updateGraph() {
-        if(this.simulation) {
+        if (this.simulation) {
             this.simulation.nodes(this.graph.tags);
             this.simulation.force("link").links(this.graph.links);
         }

@@ -21,26 +21,20 @@ export class Renderer {
             this.app.renderer.resize(document.body.clientWidth, document.body.clientHeight);
             console.log(`Resizing to: ${this.app.renderer.width}x${this.app.renderer.height}`)
         }, true);
-
-        d3.zoom()
-            .scaleExtent([0.2, 1])
-            .on("zoom", () => {
-                let s = this.app.stage;
-                s.position.x = d3.event.transform.x;
-                s.position.y = d3.event.transform.y;
-                s.scale.x = d3.event.transform.k;
-                s.scale.y = d3.event.transform.k;
-            })(d3.select('#pixiCanvas'))
     }
 
-    start() {
+    start(simulation) {
         this.app.ticker.add(this.mainLoop.bind(this));
         this.texts = {};
         this.lines = new PIXI.Graphics();
         this.app.stage.addChild(this.lines);
 
         this.point = new PIXI.Graphics();
-        this.app.stage.addChild(this.point)
+        this.app.stage.addChild(this.point);
+
+        if (simulation) {
+            this.enableDragsAndZoomViaSimulation(simulation);
+        }
     }
 
     mainLoop() {
@@ -86,7 +80,7 @@ export class Renderer {
 
         function strokeThickness(tag) {
             const multiplier = 8;
-            if(!isNaN(tag.highlightAlpha)) {
+            if (!isNaN(tag.highlightAlpha)) {
                 return tag.highlightAlpha * multiplier
             } else {
                 return multiplier;
@@ -119,10 +113,77 @@ export class Renderer {
 
 
     translateX(x) {
-        return x + this.app.renderer.width / 2 ;
+        return x + this.app.renderer.width / 2;
     }
 
     translateY(y) {
         return y + this.app.renderer.height / 2;
+    }
+
+    enableDragsAndZoomViaSimulation(simulation) {
+        const dragRadius = 60;
+        const that = this;
+        let view = this.app.renderer.view;
+        d3.select('#pixiCanvas')
+            .call(d3.drag()
+                .container(view)
+                .subject(() => findInSimulation())
+                .on('start', dragStarted)
+                .on('drag', dragged)
+                .on('end', dragEnded));
+
+        d3.select('#pixiCanvas')
+            .call(d3.zoom()
+                .scaleExtent([0.2, 1])
+                .filter(() => {
+                    let mouseNotOverTag = typeof findInSimulation() === 'undefined';
+                    let typeIsWheel = d3.event.type === 'wheel';
+                    return mouseNotOverTag || typeIsWheel;
+                })
+                .on("zoom", () => {
+                    let s = this.app.stage;
+                    s.position.x = d3.event.transform.x;
+                    s.position.y = d3.event.transform.y;
+                    s.scale.x = d3.event.transform.k;
+                    s.scale.y = d3.event.transform.k;
+                })
+            );
+
+        function findInSimulation() {
+            let s = that.app.stage;
+
+            let realX = invertTranslateX(d3.event.x);
+            let realY = invertTranslateY(d3.event.y);
+            let found = simulation.find(
+                realX,
+                realY,
+                dragRadius);
+
+            console.log(`Real coords: [${realX.toFixed(2)}]x[${realY.toFixed(2)}]`);
+            return found;
+
+            function invertTranslateX(x) {
+                return ((x - s.position.x) - that.app.renderer.width / 2 * s.scale.x) / s.scale.x
+            }
+
+            function invertTranslateY(y) {
+                return ((y - s.position.y) - that.app.renderer.height / 2 * s.scale.y) / s.scale.y
+            }
+        }
+
+        function dragStarted() {
+            d3.event.subject.fx = d3.event.subject.x;
+            d3.event.subject.fy = d3.event.subject.y;
+        }
+
+        function dragged() {
+            d3.event.subject.fx = d3.event.x;
+            d3.event.subject.fy = d3.event.y;
+        }
+
+        function dragEnded() {
+            d3.event.subject.fx = null;
+            d3.event.subject.fy = null;
+        }
     }
 }

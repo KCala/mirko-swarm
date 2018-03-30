@@ -20,4 +20,4 @@ const decorator = new Decorator(graph);
 
 backendClient.startUpdatingGraphOnWebsocketMessages(simulation.updateGraph.bind(simulation));
 simulation.startSimulation(() => decorator.decorateGraph.bind(decorator)());
-renderer.start();
+renderer.start(simulation.simulation);
