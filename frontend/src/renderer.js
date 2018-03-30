@@ -159,7 +159,7 @@ export class Renderer {
                 realY,
                 dragRadius);
 
-            console.log(`Real coords: [${realX.toFixed(2)}]x[${realY.toFixed(2)}]`);
+            // console.log(`Real coords: [${realX.toFixed(2)}]x[${realY.toFixed(2)}]`);
             return found;
 
             function invertTranslateX(x) {

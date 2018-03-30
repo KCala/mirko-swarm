@@ -32,38 +32,23 @@ html, body {
     }
 }
 
-#top-bar {
-    display: flex;
-    position: absolute;
-    height: 80px;
-    width: 100%;
-    align-items: center;
-    /*background-color: rgba(0, 0, 0, 0.2)*/
-}
-
-#top-bar #title {
+#title {
     color: #ffffff;
     font-family: "Trebuchet MS", serif;
     font-weight: 100;
-    margin-left: 30px;
-    vertical-align: center;
-    display: flex;
+    font-size: 20px;
+    margin: 20px 0 0 20px;
     align-items: center;
-    /*align="center";*/
+    display: inline-block;
+    position: absolute;
+    height: 23px;
+    line-height: 23px;
+    vertical-align: middle;
 }
 
-#top-bar #title img {
-    margin-right: 0.3em;
-}
-
-#top-bar #info {
-    color: #ffffff;
-    margin-left: auto;
-    margin-right: 30px;
-}
-
-#top-bar > * {
-    margin: 10px;
+#title img {
+    height: 100%;
+    vertical-align: middle;
 }
 
 #main-container {
