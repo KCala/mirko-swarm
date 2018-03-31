@@ -1,6 +1,11 @@
 export class BackendClient {
     constructor(initialGraph) {
-        this.wsAddress = `ws://${window.location.hostname}:${window.location.port}/api/v1/entries`;
+
+            if(window.location.hostname === 'localhost') {
+                this.wsAddress = `ws://localhost:8080/api/v1/entries`;
+            } else {
+                this.wsAddress =`ws://${window.location.hostname}:${window.location.port}/api/v1/entries`;
+            }
         this.graph = initialGraph;
     }
 

@@ -97,7 +97,7 @@ export class Renderer {
         let g = this.lines;
         g.clear();
         this.graph.links.forEach(link => {
-            g.lineStyle(Math.min(link.strength, 6), 0xFFFFFF, 1 - Math.min(link.strength * 0.01 + 0.20, 1));
+            g.lineStyle(1, 0xFFFFFF, Math.min(link.strength * 0.01 + 0.20, 1));
             g.moveTo(this.translateX(link.source.x), this.translateY(link.source.y));
             g.lineTo(this.translateX(link.target.x), this.translateY(link.target.y));
         })
