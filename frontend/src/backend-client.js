@@ -1,6 +1,6 @@
 export class BackendClient {
     constructor(initialGraph) {
-        this.wsAddress = `ws://${window.location.hostname}:2137/api/v1/entries`;
+        this.wsAddress = `ws://${window.location.hostname}:${window.location.port}/api/v1/entries`;
         this.graph = initialGraph;
     }
 
