@@ -116,3 +116,5 @@ Temporary Items
 # End of https://www.gitignore.io/api/scala,linux,macos,intellij
 
 **/target
+
+/tmp

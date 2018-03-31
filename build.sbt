@@ -1,3 +1,8 @@
+import com.github.eirslett.maven.plugins.frontend.lib.FrontendPluginFactory
+import sbtfrontend.FrontendPlugin.autoImport.FrontendKeys._
+
+enablePlugins(FrontendPlugin)
+
 name := "mirko-swarm"
 organization := "me.kcala"
 
@@ -19,3 +24,38 @@ libraryDependencies ++= Seq(
 )
 
 fork in run := true
+
+lazy val frontendDir = settingKey[File]("Base directory for the frontend")
+frontendDir := baseDirectory.value / "frontend"
+
+lazy val resourcesDir = settingKey[File]("External resources directory")
+lazy val prepareResourcesDir = settingKey[Unit]("Creade external resources directory")
+resourcesDir := (Compile / target).value / "resources"
+unmanagedResourceDirectories in Compile += resourcesDir.value
+prepareResourcesDir := {
+  IO.createDirectory(resourcesDir.value)
+}
+
+lazy val frontendTargetDir = settingKey[File]("Frontend assets target directory")
+frontendTargetDir := resourcesDir.value / "frontend"
+cleanFiles += frontendTargetDir.value
+
+nodePackageManager := sbtfrontend.NodePackageManager.Yarn
+frontendFactory := new FrontendPluginFactory(frontendDir.value, baseDirectory.value / "tmp" / "frontendBin")
+
+lazy val prepareFrontendDir = taskKey[Unit]("Create frontend target directory")
+val buildFrontend = taskKey[Unit]("Build frontend bundle")
+
+prepareFrontendDir := {
+  prepareResourcesDir.value
+  IO.createDirectory(frontendTargetDir.value)
+}
+
+buildFrontend := {
+  prepareFrontendDir.value
+  yarn.toTask(" build").value
+  IO.listFiles(frontendDir.value / "dist").foreach(file => {
+    println(s"Copying $file to ${frontendTargetDir.value / file.name}")
+    IO.move(file, frontendTargetDir.value / file.name)
+  })
+}
