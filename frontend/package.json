@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "d3": "^4.13.0",
+    "favicons-webpack-plugin": "^0.0.8",
     "pixi.js": "^4.7.1"
   },
   "scripts": {
