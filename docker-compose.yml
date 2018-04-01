@@ -1,0 +1,18 @@
+version: "3"
+services:
+  mirko-swarm:
+    image: kcala/mirko-swarm:1.0
+    deploy:
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "2137:2137"
+    environment:
+          - VIRTUAL_HOST=mirkoswarm.local
+          - NETWORK_ACCESS=internal
+  nginx-proxy:
+      image: jwilder/nginx-proxy
+      ports:
+        - "80:80"
+      volumes:
+        - /var/run/docker.sock:/tmp/docker.sock:ro
