@@ -1,4 +1,4 @@
-package me.kcala.mirkoSwarm.json
+package kcala.mirkoSwarm.json
 
 import spray.json.{DeserializationException, JsString, JsValue, RootJsonFormat}
 

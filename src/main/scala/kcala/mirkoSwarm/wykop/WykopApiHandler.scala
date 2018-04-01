@@ -1,4 +1,4 @@
-package me.kcala.mirkoSwarm.wykop
+package kcala.mirkoSwarm.wykop
 
 import akka.NotUsed
 import akka.actor.Cancellable
@@ -8,10 +8,10 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Source}
 import akka.stream.{Graph, SourceShape}
 import com.typesafe.scalalogging.StrictLogging
-import me.kcala.mirkoSwarm.json.JsonSupport
-import me.kcala.mirkoSwarm.main.Deps
-import me.kcala.mirkoSwarm.model.{Entry, SwarmError}
-import me.kcala.mirkoSwarm.wykop.WykopApiHandler.{WykopApiException, _}
+import kcala.mirkoSwarm.json.JsonSupport
+import kcala.mirkoSwarm.main.Deps
+import kcala.mirkoSwarm.model.{Entry, SwarmError}
+import kcala.mirkoSwarm.wykop.WykopApiHandler.{WykopApiException, _}
 
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.{DurationLong, FiniteDuration}

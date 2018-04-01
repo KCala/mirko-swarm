@@ -1,12 +1,11 @@
-package me.kcala.mirkoSwarm.json
+package kcala.mirkoSwarm.json
 
 import java.time.LocalDateTime
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import me.kcala.mirkoSwarm.model.{Entry, Sex, SwarmError, Tag}
-import me.kcala.mirkoSwarm.wykop.{MirkoEntry, MirkoError}
-import spray.json.{DefaultJsonProtocol, DeserializationException, JsNull, JsObject, JsString, JsValue, JsonFormat, JsonReader, NullOptions, RootJsonFormat, RootJsonReader}
+import kcala.mirkoSwarm.model.{Entry, Sex, SwarmError, Tag}
+import kcala.mirkoSwarm.wykop.{MirkoEntry, MirkoError}
+import spray.json.{DefaultJsonProtocol, DeserializationException, JsObject, JsString, JsValue, JsonFormat, NullOptions, RootJsonFormat}
 
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with NullOptions {

@@ -1,10 +1,10 @@
-package me.kcala.mirkoSwarm.main
+package kcala.mirkoSwarm.main
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.unmarshalling.Unmarshaller.EitherUnmarshallingException
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
 import com.typesafe.scalalogging.StrictLogging
-import me.kcala.mirkoSwarm.config.{AppConfig, AppConfigKeys}
+import kcala.mirkoSwarm.config.{AppConfig, AppConfigKeys}
 
 object Main extends App with StrictLogging {
 

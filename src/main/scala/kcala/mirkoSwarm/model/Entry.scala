@@ -1,8 +1,8 @@
-package me.kcala.mirkoSwarm.model
+package kcala.mirkoSwarm.model
 
 import java.time.LocalDateTime
 
-import me.kcala.mirkoSwarm.model.Sex.Sex
+import kcala.mirkoSwarm.model.Sex.Sex
 
 case class Entry(
                 dateTime: LocalDateTime,

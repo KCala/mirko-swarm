@@ -5,7 +5,7 @@ enablePlugins(FrontendPlugin)
 enablePlugins(PackPlugin)
 
 name := "mirko-swarm"
-organization := "me.kcala"
+organization := "kcala"
 
 version := "0.1"
 
@@ -62,7 +62,7 @@ buildFrontend := {
 }
 
 packGenerateWindowsBatFile := false
-packMain := Map("mirko-swarm" -> "me.kcala.mirkoSwarm.main.Main")
+packMain := Map("mirko-swarm" -> "kcala.mirkoSwarm.main.Main")
 //packExtraClasspath += Map("mirko-swarm" -> Seq("${PROG_HOME}/resources"))
 packResourceDir += (resourcesDir.value -> "resources")
 

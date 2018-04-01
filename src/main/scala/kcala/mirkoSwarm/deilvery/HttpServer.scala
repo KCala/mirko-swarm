@@ -1,4 +1,4 @@
-package me.kcala.mirkoSwarm.deilvery
+package kcala.mirkoSwarm.deilvery
 
 import akka.NotUsed
 import akka.http.scaladsl.Http
@@ -7,10 +7,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{PathMatcher, Route}
 import akka.stream.scaladsl.{BroadcastHub, Flow, Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
-import me.kcala.mirkoSwarm.deilvery.HttpServer.{ApiPrefixSegments, EntriesEndpoint}
-import me.kcala.mirkoSwarm.json.JsonSupport
-import me.kcala.mirkoSwarm.main.Deps
-import me.kcala.mirkoSwarm.model.{Entry, SwarmError}
+import kcala.mirkoSwarm.deilvery.HttpServer.{ApiPrefixSegments, EntriesEndpoint}
+import kcala.mirkoSwarm.json.JsonSupport
+import kcala.mirkoSwarm.main.Deps
+import kcala.mirkoSwarm.model.{Entry, SwarmError}
 import spray.json.enrichAny
 
 private class HttpServer(interface: String,

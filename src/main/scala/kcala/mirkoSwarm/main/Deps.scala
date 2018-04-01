@@ -1,4 +1,4 @@
-package me.kcala.mirkoSwarm.main
+package kcala.mirkoSwarm.main
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer

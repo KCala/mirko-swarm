@@ -1,14 +1,13 @@
-package me.kcala.mirkoSwarm.wykop
+package kcala.mirkoSwarm.wykop
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import me.kcala.mirkoSwarm.model.{Entry, Sex, Tag}
-import spray.json.{JsValue, RootJsonFormat}
+import kcala.mirkoSwarm.model.{Entry, Sex, Tag}
 
 /**
   * Represents JSON response format from Wykop API at
-  * http://a.me.kcala.mirkoSwarm.wykop.pl/stream/index endpoint
+  * http://a.kcala.mirkoSwarm.wykop.pl/stream/index endpoint
   *
   * Only relevant fields are listed
   */

@@ -1,4 +1,4 @@
-package me.kcala.mirkoSwarm.config
+package kcala.mirkoSwarm.config
 
 import com.typesafe.config.Config
 

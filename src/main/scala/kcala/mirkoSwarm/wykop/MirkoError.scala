@@ -1,6 +1,6 @@
-package me.kcala.mirkoSwarm.wykop
+package kcala.mirkoSwarm.wykop
 
-import me.kcala.mirkoSwarm.model.SwarmError
+import kcala.mirkoSwarm.model.SwarmError
 
 case class MirkoError(
                        code: Integer,

@@ -1,3 +1,3 @@
-package me.kcala.mirkoSwarm.model
+package kcala.mirkoSwarm.model
 
 case class SwarmError(error: String)
