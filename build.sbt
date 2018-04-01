@@ -2,6 +2,7 @@ import com.github.eirslett.maven.plugins.frontend.lib.FrontendPluginFactory
 import sbtfrontend.FrontendPlugin.autoImport.FrontendKeys._
 
 enablePlugins(FrontendPlugin)
+enablePlugins(PackPlugin)
 
 name := "mirko-swarm"
 organization := "me.kcala"
@@ -58,4 +59,17 @@ buildFrontend := {
     println(s"Copying $file to ${frontendTargetDir.value / file.name}")
     IO.move(file, frontendTargetDir.value / file.name)
   })
+}
+
+packGenerateWindowsBatFile := false
+packMain := Map("mirko-swarm" -> "me.kcala.mirkoSwarm.main.Main")
+//packExtraClasspath += Map("mirko-swarm" -> Seq("${PROG_HOME}/resources"))
+packResourceDir += (resourcesDir.value -> "resources")
+
+lazy val build = taskKey[Unit]("Build the distributable, self-contained package with executable.")
+build := {
+  Def.sequential(
+    buildFrontend,
+    pack
+  ).value
 }
