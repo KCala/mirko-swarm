@@ -34,7 +34,7 @@ export class BackendClient {
 
     handleMessage(message) {
         if(message.error) {
-            this.handleError(message)
+            BackendClient.handleError(message)
         } else {
             this.handleEntry(message)
         }

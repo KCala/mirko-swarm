@@ -130,7 +130,12 @@ export class Renderer {
                 .subject(() => findInSimulation())
                 .on('start', dragStarted)
                 .on('drag', dragged)
-                .on('end', dragEnded));
+                .on('end', dragEnded)
+            )
+            // .on('dblclick', () => {
+            //     console.log(`${d3.event.x}x${d3.event.y}`)
+            // })
+        ;
 
         d3.select('#pixiCanvas')
             .call(d3.zoom()
