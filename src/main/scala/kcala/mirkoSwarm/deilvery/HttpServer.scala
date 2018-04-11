@@ -13,9 +13,12 @@ import kcala.mirkoSwarm.main.Deps
 import kcala.mirkoSwarm.model.{Entry, SwarmError}
 import spray.json.enrichAny
 
+import scala.concurrent.duration.{DurationLong, FiniteDuration}
+
 private class HttpServer(interface: String,
                          port: Int,
-                         mirkoEntriesSource: Source[Either[SwarmError, Entry], _])(implicit deps: Deps)
+                         sourceTickInterval: FiniteDuration,
+                         mirkoEntriesSource: Source[Entry, _])(implicit deps: Deps)
   extends StrictLogging with JsonSupport {
 
   import deps._
@@ -43,24 +46,31 @@ private class HttpServer(interface: String,
       logger.info(s"Serving frontend at https://$interface:$port/")
     }
 
-  private def ignoreMessagesAndAttachMirkoEntriesFlow: Flow[Message, Message, Any] = Flow.fromSinkAndSource(
-    Sink.ignore,
-    mirkoEntriesSource.map {
-      case Right(r) => r.toJson
-      case Left(l) => l.toJson
-    })
-    .map(json => TextMessage(json.prettyPrint))
+  private def ignoreMessagesAndAttachMirkoEntriesFlow: Flow[Message, Message, Any] =
+    Flow.fromSinkAndSource(
+      Sink.ignore,
+      mirkoEntriesSource.keepAlive(sourceTickInterval + 100.millis, () => {
+        logger.warn(s"No entries since $sourceTickInterval. Sending error to the clients.")
+        SwarmError("Wykop API not responding")
+      }
+      ))
+      .map {
+        case e: Entry => e.toJson
+        case err: SwarmError => err.toJson
+      }
+      .map(json => TextMessage(json.prettyPrint))
+
 }
 
 object HttpServer {
   val EntriesEndpoint: String = "entries"
   val ApiPrefixSegments: Seq[String] = "api/v1".split('/').toSeq
 
-  def sink(interface: String, port: Int)(implicit deps: Deps): Sink[Either[SwarmError, Entry], NotUsed] = {
-    BroadcastHub.sink[Either[SwarmError, Entry]](bufferSize = 256).mapMaterializedValue(entriesSource => {
+  def sink(interface: String, port: Int, sourceTickInterval: FiniteDuration)(implicit deps: Deps): Sink[Entry, NotUsed] = {
+    BroadcastHub.sink[Entry](bufferSize = 256).mapMaterializedValue(entriesSource => {
       import deps._
       entriesSource.runForeach(_ => Sink.ignore)
-      new HttpServer(interface, port, entriesSource)
+      new HttpServer(interface, port, sourceTickInterval, entriesSource)
       NotUsed
     })
   }

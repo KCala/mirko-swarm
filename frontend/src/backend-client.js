@@ -23,13 +23,9 @@ export class BackendClient {
             onUpdated();
         };
         this.socket.onclose = () => {
-            console.error(`WS closed. Retrying in 10 seconds`);
+            console.error(`WS closed. Reconnecting in 10 seconds`);
             setTimeout(() => that.startUpdatingGraphOnWebsocketMessages(onUpdated), 10000)
         };
-        this.socket.onerror = e => {
-            console.error(`WS error!. ${e}. Retrying in 10 seconds`);
-            setTimeout(() => that.startUpdatingGraphOnWebsocketMessages(onUpdated), 10000)
-        }
     }
 
     handleMessage(message) {

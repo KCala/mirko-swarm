@@ -10,8 +10,11 @@ object Main extends App with StrictLogging {
   implicit val actorSystem: ActorSystem = ActorSystem(AppConfigKeys.MirkoSwarm)
 
 //  val decider: Supervision.Decider = {
-//    case e: EitherUnmarshallingException =>
-//      logger.error("Unhandled exception in stream", e)
+//    case e: WykopApiException =>
+//      logger.warn("Problem connecting to Wykop API. Dropping this tick", e)
+//      Supervision.Resume
+//    case other =>
+//      logger.error("Unhandled exception in stream", other)
 //      Supervision.Restart
 //  }
 

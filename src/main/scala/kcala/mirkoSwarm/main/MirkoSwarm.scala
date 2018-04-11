@@ -6,7 +6,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import kcala.mirkoSwarm.config.AppConfig
 import kcala.mirkoSwarm.deilvery.HttpServer
-import kcala.mirkoSwarm.model.{Entry, SwarmError}
+import kcala.mirkoSwarm.model.Entry
 import kcala.mirkoSwarm.wykop.WykopApiHandler
 
 class MirkoSwarm(config: AppConfig)(implicit deps: Deps) extends StrictLogging {
@@ -15,8 +15,8 @@ class MirkoSwarm(config: AppConfig)(implicit deps: Deps) extends StrictLogging {
 
   val wykopApiHandler: WykopApiHandler = new WykopApiHandler(config.wykopApiHost, config.wykopApiKey, config.tickInterval, config.waitOnWykopApiError)
 
-  val entriesSource: Source[Either[SwarmError, Entry], Cancellable] = wykopApiHandler.entriesSource
-  val websocketSink: Sink[Either[SwarmError, Entry], NotUsed] = HttpServer.sink(config.interface, config.port)
+  val entriesSource: Source[Entry, Cancellable] = wykopApiHandler.entriesSource
+  val websocketSink: Sink[Entry, NotUsed] = HttpServer.sink(config.interface, config.port, config.tickInterval)
 
   entriesSource.to(websocketSink).run()
 }

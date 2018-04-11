@@ -5,8 +5,7 @@ import akka.actor.Cancellable
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Source}
-import akka.stream.{Graph, SourceShape}
+import akka.stream.scaladsl.{Flow, Source}
 import com.typesafe.scalalogging.StrictLogging
 import kcala.mirkoSwarm.json.JsonSupport
 import kcala.mirkoSwarm.main.Deps
@@ -17,7 +16,10 @@ import scala.collection.immutable.Seq
 import scala.concurrent.duration.{DurationLong, FiniteDuration}
 import scala.util.{Failure, Success, Try}
 
-class WykopApiHandler(wykopApiHost: String, wykopApiKey: String, interval: FiniteDuration, waitOnFail: FiniteDuration)(implicit deps: Deps) extends JsonSupport with StrictLogging {
+class WykopApiHandler(wykopApiHost: String,
+                      wykopApiKey: String,
+                      interval: FiniteDuration,
+                      waitOnFail: FiniteDuration)(implicit deps: Deps) extends JsonSupport with StrictLogging {
 
   import deps._
 
@@ -52,42 +54,13 @@ class WykopApiHandler(wykopApiHost: String, wykopApiKey: String, interval: Finit
     )
     .map(_.reverse)
 
-  val entriesSource: Source[Either[SwarmError, Entry], Cancellable] =
+  val entriesSource: Source[Entry, Cancellable] =
     tickedEntriesSource(0.seconds, interval)
-      .map(Right(_))
       .recoverWithRetries(InfiniteAttempts, {
-        case ex: WykopApiException => singleErrorAndThenEntriesSource(ex.swarmError)
+        case ex: WykopApiException =>
+          logger.warn(s"Error connecting to Wykop API. Retrying in $waitOnFail")
+          tickedEntriesSource(waitOnFail, interval).mapMaterializedValue(_ => NotUsed)
       })
-
-  private def singleErrorAndThenEntriesSource(swarmError: SwarmError): Source[Either[SwarmError, Entry], NotUsed] = {
-    logger.info(s"Sending error to clients. Will retry to reconnect to wykop in $waitOnFail")
-    val graph: Graph[SourceShape[Either[SwarmError, Entry]], NotUsed] = GraphDSL.create() { implicit b =>
-      import GraphDSL.Implicits._
-      val entriesSource = tickedEntriesSource(waitOnFail, interval).mapMaterializedValue(_ => NotUsed).map(Right(_))
-      //TODO this shouldn't be single but on every tick so clients know what's up. However drop it after first successfull entry
-      val errorSource = Source.tick(0.seconds, interval, Left(swarmError))
-      val merge = b.add(Merge[Either[SwarmError, Entry]](2))
-
-      val filter = b.add(Flow[Either[SwarmError, Entry]].statefulMapConcat(() => {
-        var properEntryAppeared = false
-        either => {
-          if (properEntryAppeared && either.isLeft) Seq()
-          else {
-            if (either.isRight) properEntryAppeared = true
-            Seq(either)
-          }
-        }
-      }))
-
-      errorSource ~> merge
-      entriesSource ~> merge
-
-      merge ~> filter
-
-      SourceShape(filter.out)
-    }
-    Source.fromGraph(graph)
-  }
 
   private def tickedEntriesSource(initialDelay: FiniteDuration, interval: FiniteDuration): Source[Entry, Cancellable] = {
     logger.info(s"Creating new wykop entries ticking source. Initial delay: [$initialDelay]. Interval: [$interval]")
